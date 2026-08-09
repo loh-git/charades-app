@@ -1,0 +1,27 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+/app/build/
+
+# Release signing — real credentials/keystore must never be committed.
+keystore.properties
+*.jks
+*.keystore
+ARCHITECTURE.md
+CHANGES.md
+PRODUCT_REQUIREMENTS.md
+TEST_PLAN.md
+RELEASE.md
+charades-upload-key.jks.bak-testpass
+plan.md
+*.log
+*.hprof
+.kotlin/
+Thumbs.db

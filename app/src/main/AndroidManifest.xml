@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Charades"
+        android:supportsRtl="true">
+
+        <!-- Google's public sample AdMob app ID — required by the SDK to initialize at all.
+             Placeholder pending the developer's real AdMob account; must be replaced before any
+             public release build, alongside AdMobAdProvider's ad unit ID. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+
+        <!-- configChanges: GameScreen's LockOrientation flips the device between landscape
+             (COUNTDOWN/PLAYING) and portrait (summary screens) as normal gameplay. Without this,
+             each flip is a configuration change that destroys and recreates the Activity, which
+             would discard AdMobAdProvider's cached interstitial and re-run the UMP consent flow
+             on every single round transition. Compose already handles the actual re-layout via
+             recomposition, and existing state already relies on surviving configuration changes
+             (ViewModelStore, NavController's saved state), so nothing depends on recreation
+             happening. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout"
+            android:theme="@style/Theme.Charades.Starting">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

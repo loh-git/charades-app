@@ -1,0 +1,161 @@
+package com.zoomi.charades.data
+
+object BuiltInDecks {
+
+    val all: List<Deck> = listOf(
+        Deck(
+            id = "blockbuster_movies",
+            title = "Blockbuster Movies",
+            category = Category.MOVIES,
+            icon = Category.MOVIES.icon,
+            shortDescription = "Famous Hollywood movies, cinema classics, and iconic blockbusters from all eras.",
+            howToPlay = "Act out a famous line or scene from the film, mime key story moments, or act out the title without speaking!",
+            words = listOf(
+                "Jaws", "Titanic", "Rocky", "Gladiator", "Inception", "Ghostbusters",
+                "Casablanca", "Psycho", "Alien", "Gravity", "The Matrix", "Home Alone",
+                "The Godfather", "Jurassic Park", "Twister", "Speed", "Grease", "Jumanji", "Elf",
+            ),
+        ),
+        Deck(
+            id = "animated_movies",
+            title = "Animated Movies",
+            category = Category.MOVIES,
+            icon = Category.MOVIES.icon,
+            shortDescription = "Cartoons and animated favorites from the big screen.",
+            howToPlay = "Act out a character, key scene, or the title of the animated film without speaking!",
+            words = listOf(
+                "Shrek", "Frozen", "Up", "Cars", "Coco", "Moana", "Tangled", "Zootopia",
+                "Ratatouille", "Toy Story", "The Lion King", "Finding Nemo",
+            ),
+        ),
+        Deck(
+            id = "wild_animals",
+            title = "Wild Animals",
+            category = Category.ANIMALS,
+            icon = Category.ANIMALS.icon,
+            shortDescription = "Creatures from the jungle, savanna, and forest.",
+            howToPlay = "Move and sound like the animal — no talking, just act it out!",
+            words = listOf(
+                "Elephant", "Kangaroo", "Giraffe", "Cheetah", "Gorilla", "Hedgehog", "Koala",
+                "Llama", "Moose", "Peacock", "Rhinoceros", "Squirrel", "Toucan", "Zebra",
+                "Beaver", "Camel", "Chameleon", "Eagle", "Fox", "Hippopotamus", "Owl", "Panda",
+                "Raccoon", "Sloth", "Woodpecker",
+            ),
+        ),
+        Deck(
+            id = "sea_creatures",
+            title = "Sea Creatures",
+            category = Category.ANIMALS,
+            icon = Category.ANIMALS.icon,
+            shortDescription = "Life below (and around) the waves.",
+            howToPlay = "Move and sound like the creature — no talking, just act it out!",
+            words = listOf(
+                "Penguin", "Octopus", "Dolphin", "Otter", "Walrus", "Crab", "Jellyfish",
+                "Turtle", "Flamingo",
+            ),
+        ),
+        Deck(
+            id = "iconic_musicians",
+            title = "Iconic Musicians",
+            category = Category.MUSIC,
+            icon = Category.MUSIC.icon,
+            shortDescription = "Legendary singers and bands everyone knows.",
+            howToPlay = "Act out a signature move, mime playing their instrument, or perform their most famous pose!",
+            words = listOf(
+                "Elvis Presley", "The Beatles", "Michael Jackson", "Madonna", "Beyoncé",
+                "Queen", "ABBA", "Elton John", "Adele", "Taylor Swift", "Bob Marley",
+                "Frank Sinatra", "Whitney Houston", "Ed Sheeran", "Freddie Mercury",
+            ),
+        ),
+        Deck(
+            id = "musical_instruments",
+            title = "Musical Instruments",
+            category = Category.MUSIC,
+            icon = Category.MUSIC.icon,
+            shortDescription = "Mime playing your favorite instruments.",
+            howToPlay = "Mime playing the instrument — no humming or singing, just the actions!",
+            words = listOf(
+                "Guitar", "Piano", "Violin", "Drums", "Trumpet", "Flute", "Saxophone", "Cello",
+                "Harp", "Accordion", "Banjo", "Clarinet", "Trombone", "Xylophone", "Ukulele",
+                "Bagpipes", "Tambourine", "Maracas", "Harmonica", "Double Bass",
+            ),
+        ),
+        Deck(
+            id = "everyday_actions",
+            title = "Everyday Actions",
+            category = Category.ACTIONS,
+            icon = Category.ACTIONS.icon,
+            shortDescription = "Simple things people do every day.",
+            howToPlay = "Mime the action as clearly as you can — no props, no speaking!",
+            words = listOf(
+                "Sleeping", "Yawning", "Knitting", "Gardening", "Whistling", "Snoring", "Baking",
+                "Typing", "Laughing", "Crying", "Shivering", "Stretching", "Hiccupping",
+                "Vacuuming", "Shrugging", "Bowing", "Painting", "Sneezing",
+            ),
+        ),
+        Deck(
+            id = "sports_and_movement",
+            title = "Sports & Movement",
+            category = Category.ACTIONS,
+            icon = Category.ACTIONS.icon,
+            shortDescription = "Get up and act out sports and physical activities.",
+            howToPlay = "Mime the sport or movement as clearly as you can — no props, no speaking!",
+            words = listOf(
+                "Swimming", "Dancing", "Juggling", "Skiing", "Fishing", "Boxing", "Surfing",
+                "Skateboarding", "Sprinting", "Diving", "Climbing", "Wrestling",
+            ),
+        ),
+        Deck(
+            id = "historical_figures",
+            title = "Historical Figures",
+            category = Category.FAMOUS_PEOPLE,
+            icon = Category.FAMOUS_PEOPLE.icon,
+            shortDescription = "Leaders and icons who shaped history.",
+            howToPlay = "Act out something the person is famous for — no names, no talking!",
+            words = listOf(
+                "Cleopatra", "Abraham Lincoln", "Napoleon Bonaparte", "Amelia Earhart",
+                "Mahatma Gandhi", "Julius Caesar", "Nelson Mandela", "Christopher Columbus",
+                "Martin Luther King Jr.", "Queen Elizabeth II", "Benjamin Franklin",
+                "Rosa Parks", "Galileo Galilei",
+            ),
+        ),
+        Deck(
+            id = "scientists_and_artists",
+            title = "Scientists & Artists",
+            category = Category.FAMOUS_PEOPLE,
+            icon = Category.FAMOUS_PEOPLE.icon,
+            shortDescription = "Great minds and creators throughout history.",
+            howToPlay = "Act out something the person is famous for — no names, no talking!",
+            words = listOf(
+                "Albert Einstein", "William Shakespeare", "Leonardo da Vinci", "Marie Curie",
+                "Isaac Newton", "Charles Darwin", "Frida Kahlo", "Pablo Picasso", "Mozart",
+                "Beethoven", "Vincent van Gogh",
+            ),
+        ),
+        Deck(
+            id = "household_items",
+            title = "Household Items",
+            category = Category.RANDOM_OBJECTS,
+            icon = Category.RANDOM_OBJECTS.icon,
+            shortDescription = "Everyday objects found around the house.",
+            howToPlay = "Mime using the object — no props, no speaking!",
+            words = listOf(
+                "Umbrella", "Toaster", "Chandelier", "Wheelbarrow", "Typewriter", "Ladder",
+                "Lantern", "Mailbox", "Snow Globe", "Suitcase", "Wristwatch", "Doormat",
+                "Flashlight", "Rocking Chair",
+            ),
+        ),
+        Deck(
+            id = "adventure_gear",
+            title = "Adventure Gear & Oddities",
+            category = Category.RANDOM_OBJECTS,
+            icon = Category.RANDOM_OBJECTS.icon,
+            shortDescription = "A grab-bag of outdoorsy gear and odd objects.",
+            howToPlay = "Mime using the object — no props, no speaking!",
+            words = listOf(
+                "Backpack", "Telescope", "Trampoline", "Fishing Rod", "Binoculars", "Kite",
+                "Anchor", "Compass", "Pretzel", "Piñata", "Pogo Stick", "Scarecrow",
+            ),
+        ),
+    )
+}
