@@ -9,17 +9,31 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,11 +49,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zoomi.charades.ads.AdProvider
 import com.zoomi.charades.data.AdsRepository
@@ -54,10 +74,7 @@ import com.zoomi.charades.game.PartyMatchViewModel
 import com.zoomi.charades.game.RoundPhase
 import com.zoomi.charades.game.TiltDetector
 import com.zoomi.charades.game.hasAccelerometer
-import com.zoomi.charades.ui.theme.CorrectGreen
-import com.zoomi.charades.ui.theme.IncorrectRed
 import com.zoomi.charades.ui.theme.LocalExtendedColors
-import com.zoomi.charades.ui.theme.PassOrange
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -150,8 +167,8 @@ fun GameScreen(
         viewModel.events.collect { event ->
             feedback.onEvent(event)
             flashColor = when (event) {
-                GameEvent.CORRECT -> CorrectGreen.copy(alpha = 0.35f)
-                GameEvent.PASS -> IncorrectRed.copy(alpha = 0.35f)
+                GameEvent.CORRECT -> Color(0xFF00D492).copy(alpha = 0.35f)
+                GameEvent.PASS -> Color(0xFFFF2056).copy(alpha = 0.35f)
                 GameEvent.TIME_UP -> Color.Transparent
             }
             if (event != GameEvent.TIME_UP) {
@@ -162,8 +179,9 @@ fun GameScreen(
     }
 
     var tiltError by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
     if (state.phase == RoundPhase.PLAYING) {
-        DisposableEffect(settings.tiltSensitivity, settings.invertTilt) {
+        DisposableEffect(settings.tiltSensitivity, settings.invertTilt, lifecycleOwner) {
             val (downAction, upAction) = if (settings.invertTilt) {
                 viewModel::onTiltCorrect to viewModel::onTiltPass
             } else {
@@ -177,12 +195,33 @@ fun GameScreen(
                     triggerAngleDegrees = settings.tiltSensitivity.triggerAngleDegrees,
                     onTiltDown = downAction,
                     onTiltUp = upAction,
-                ).apply { register() }
+                )
             } catch (e: Exception) {
                 tiltError = true
                 null
             }
-            onDispose { detector?.unregister() }
+
+            // A registered sensor listener keeps delivering events (and firing tilt actions +
+            // sound) even while the app is backgrounded, unless explicitly unregistered — tie
+            // registration to the Activity lifecycle rather than just composition, so switching
+            // away from the app actually stops the round from reacting to tilts.
+            val lifecycleObserver = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> try {
+                        detector?.register()
+                    } catch (e: Exception) {
+                        tiltError = true
+                    }
+                    Lifecycle.Event.ON_PAUSE -> detector?.unregister()
+                    else -> Unit
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+                detector?.unregister()
+            }
         }
     }
 
@@ -195,6 +234,7 @@ fun GameScreen(
             RoundPhase.COUNTDOWN -> CountdownContent(
                 value = state.countdownValue,
                 invertTilt = settings.invertTilt,
+                deckTitle = deck.title,
             )
             RoundPhase.PLAYING -> PlayingContent(
                 word = state.currentWord,
@@ -203,6 +243,7 @@ fun GameScreen(
                 showTapFallback = settings.touchFallbackEnabled || !context.hasAccelerometer() || tiltError,
                 onCorrect = viewModel::onTiltCorrect,
                 onPass = viewModel::onTiltPass,
+                onPause = viewModel::pause,
             )
             RoundPhase.FINISHED -> {
                 if (partyMatchViewModel != null) {
@@ -220,6 +261,8 @@ fun GameScreen(
                     }
                 } else {
                     RoundSummaryScreen(
+                        deckTitle = deck.title,
+                        timerSeconds = roundDurationSeconds,
                         score = state.score,
                         results = state.results,
                         onPlayAgain = { leaveRound(viewModel::startRound) },
@@ -229,10 +272,63 @@ fun GameScreen(
             }
         }
     }
+
+    if (state.isPaused) {
+        PauseDialog(
+            onResume = viewModel::resume,
+            onExit = { leaveRound(onExit) },
+        )
+    }
 }
 
 @Composable
-private fun CountdownContent(value: Int, invertTilt: Boolean) {
+private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
+    Dialog(onDismissRequest = onResume, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 320.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
+                .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
+                .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(24.dp))
+                .padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "PAUSED",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
+                color = Color(0xFFF8FAFC),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Button(
+                    onClick = onExit,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B), contentColor = Color.White),
+                    contentPadding = PaddingValues(vertical = 10.dp),
+                ) {
+                    Text("Exit", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = onResume,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B), contentColor = Color(0xFF020617)),
+                    contentPadding = PaddingValues(vertical = 10.dp),
+                ) {
+                    Text("Resume", fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CountdownContent(value: Int, invertTilt: Boolean, deckTitle: String) {
     val playfulAnimations = LocalExtendedColors.current.playfulAnimations
     val countdownScale = remember { Animatable(1f) }
     LaunchedEffect(value) {
@@ -278,8 +374,17 @@ private fun CountdownContent(value: Int, invertTilt: Boolean) {
             },
         )
 
+        Row {
+            Text(text = "Deck: ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = deckTitle, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        }
+
         val (downLabel, upLabel) = if (invertTilt) "CORRECT" to "PASS" else "PASS" to "CORRECT"
-        val (downColor, upColor) = if (invertTilt) CorrectGreen to PassOrange else PassOrange to CorrectGreen
+        val (downColor, upColor) = if (invertTilt) {
+            Color(0xFF00D492) to Color(0xFFFF2056)
+        } else {
+            Color(0xFFFF2056) to Color(0xFF00D492)
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "↓ TILT DOWN = $downLabel",
@@ -306,18 +411,44 @@ private fun PlayingContent(
     showTapFallback: Boolean,
     onCorrect: () -> Unit,
     onPass: () -> Unit,
+    onPause: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Score: $score", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text("⏱ ${timeRemaining}s", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "Score: $score",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "⏱ ${timeRemaining}s",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f),
+            )
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color(0xFF1E293B), RoundedCornerShape(12.dp))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onPause,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(imageVector = Icons.Filled.Pause, contentDescription = "Pause", tint = Color.White)
+                }
+            }
         }
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(vertical = 16.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp)),
+                .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -333,18 +464,48 @@ private fun PlayingContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Button(
+                TapFallbackButton(
+                    label = "Pass",
+                    icon = Icons.Filled.ArrowDownward,
+                    accentColor = Color(0xFFFF2056),
+                    backgroundColor = Color(0xFF30243B),
                     onClick = onPass,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = PassOrange),
-                ) { Text("Pass") }
-                Button(
+                )
+                TapFallbackButton(
+                    label = "Correct",
+                    icon = Icons.Filled.ArrowUpward,
+                    accentColor = Color(0xFF00D492),
+                    backgroundColor = Color(0xFF16343F),
                     onClick = onCorrect,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = CorrectGreen),
-                ) { Text("Correct") }
+                )
             }
         }
+    }
+}
+
+// Matches DeckDetailScreen.kt's TiltInstructionRow "Down"/"Up" pill colouring, scaled up into a
+// full tap-fallback button so the two controls read as the same visual language.
+@Composable
+private fun TapFallbackButton(
+    label: String,
+    icon: ImageVector,
+    accentColor: Color,
+    backgroundColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor, contentColor = accentColor),
+        border = BorderStroke(1.dp, accentColor),
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(18.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(label, fontWeight = FontWeight.Bold)
     }
 }
 

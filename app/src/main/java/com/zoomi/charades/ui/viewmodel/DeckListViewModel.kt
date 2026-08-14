@@ -50,12 +50,7 @@ class DeckListViewModel(
                 DeckFilter.Favourites -> deck.id in favoriteIds
                 is DeckFilter.ByCategory -> deck.category == filter.category
             }
-            matchesFilter &&
-                (
-                    query.isBlank() ||
-                        deck.title.contains(query, ignoreCase = true) ||
-                        deck.shortDescription.contains(query, ignoreCase = true)
-                    )
+            matchesFilter && (query.isBlank() || deck.title.contains(query, ignoreCase = true))
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

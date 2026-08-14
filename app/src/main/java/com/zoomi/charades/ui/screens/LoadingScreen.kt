@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zoomi.charades.ui.theme.LocalExtendedColors
@@ -51,17 +51,10 @@ fun LoadingScreen(onLoaded: () -> Unit) {
         }
 
         Text(
-            text = "Ultimate Charades — Guess It!",
+            text = "Ultimate Charades",
             style = MaterialTheme.typography.displayMedium.copy(brush = LocalExtendedColors.current.accentGradient),
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 24.dp),
-        )
-        Text(
-            text = "HEADS-UP MOTION PARTY GAME",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 4.dp, bottom = 32.dp),
+            modifier = Modifier.padding(top = 24.dp, bottom = 32.dp),
         )
 
         LinearProgressIndicator(
@@ -70,11 +63,21 @@ fun LoadingScreen(onLoaded: () -> Unit) {
             color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
-        Text(
-            text = "Loading... ${(progress.value * 100).toInt()}%",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 12.dp),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Loading card decks & word lists...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "${(progress.value * 100).toInt()}%",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
 }

@@ -8,10 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.zoomi.charades.data.AppTheme
 
-// Unchanged from before theming was introduced — Default must stay pixel-identical.
+// "Sunset Arcade" (AppTheme.DEFAULT) — the app's first-launch theme. Originally locked
+// pixel-identical to the pre-theming app; deliberately updated per an explicit redesign request,
+// now matched to the designer's exact spec (Tailwind tokens — see Color.kt). No longer treat this
+// scheme as frozen without checking. onPrimary is intentionally dark (BackgroundDark, not
+// TextPrimary) — the reference calls for dark text on the amber primary buttons/badges.
 private val DefaultColorScheme = darkColorScheme(
     primary = OrangeAccent,
-    onPrimary = TextPrimary,
+    onPrimary = BackgroundDark,
     secondary = PinkAccent,
     onSecondary = TextPrimary,
     tertiary = CorrectGreen,
@@ -74,6 +78,7 @@ private fun colorSchemeFor(theme: AppTheme) = when (theme) {
     AppTheme.LIGHT -> LightColorScheme
     AppTheme.POP_ART -> PopArtColorScheme
     AppTheme.TEST -> TestColorScheme
+    AppTheme.STUDIO_MINIMALIST -> LightColorScheme
 }
 
 @Composable

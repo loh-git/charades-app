@@ -43,4 +43,5 @@ internal fun extendedColorsFor(theme: AppTheme): ExtendedColors = when (theme) {
     AppTheme.LIGHT -> LightExtendedColors
     AppTheme.POP_ART -> PopArtExtendedColors
     AppTheme.TEST -> TestExtendedColors
+    AppTheme.STUDIO_MINIMALIST -> LightExtendedColors
 }

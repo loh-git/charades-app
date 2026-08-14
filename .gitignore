@@ -25,3 +25,4 @@ plan.md
 *.hprof
 .kotlin/
 Thumbs.db
+des/

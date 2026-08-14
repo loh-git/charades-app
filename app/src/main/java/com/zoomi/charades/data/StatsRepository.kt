@@ -51,6 +51,17 @@ class StatsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    suspend fun resetStats() {
+        dataStore.edit { prefs ->
+            prefs[StatsKeys.TOTAL_ROUNDS] = 0
+            prefs[StatsKeys.TOTAL_CORRECT] = 0
+            prefs[StatsKeys.TOTAL_PASSED] = 0
+            prefs[StatsKeys.BEST_SCORE] = 0
+            prefs[StatsKeys.BEST_SCORE_DECK_TITLE] = ""
+            prefs[StatsKeys.LONGEST_STREAK] = 0
+        }
+    }
+
     private fun longestStreak(results: List<WordResult>): Int {
         var longest = 0
         var current = 0

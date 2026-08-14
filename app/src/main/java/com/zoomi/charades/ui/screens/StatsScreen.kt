@@ -1,83 +1,123 @@
 package com.zoomi.charades.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.zoomi.charades.data.GameStats
 import com.zoomi.charades.ui.viewmodel.StatsViewModel
+
+private val CardSurface = Color(0xFF0F172A) // slate-900, opaque
+private val TileSurface = Color(0xE61E293B) // slate-800/90
+private val MetricTileSurface = Color(0x991E293B) // slate-800/60
+private val BorderSlate800 = Color(0xFF1E293B)
+private val BorderSlate700 = Color(0xFF334155)
+private val TextSlate100 = Color(0xFFF1F5F9)
+private val TextSlate400 = Color(0xFF94A3B8)
+private val Amber400 = Color(0xFFFBBF24)
+private val Amber500 = Color(0xFFF59E0B)
+private val Emerald400 = Color(0xFF34D399)
+private val Rose400 = Color(0xFFFB7185)
 
 @Composable
 fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
     val stats by viewModel.stats.collectAsState()
+    var showResetConfirm by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+    Dialog(onDismissRequest = onClose) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 448.dp)
+                .fillMaxWidth()
+                .background(CardSurface, RoundedCornerShape(24.dp))
+                .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
         ) {
-            Text(
-                text = "📊 Your Stats",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickable(onClick = onClose).padding(4.dp),
-            )
-        }
-
-        if (stats.totalRoundsPlayed == 0) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "Play a round to start tracking your stats!",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Amber500.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(imageVector = Icons.Filled.BarChart, contentDescription = null, tint = Amber400, modifier = Modifier.size(20.dp))
+                    }
+                    Text(
+                        text = "Your Stats",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        color = TextSlate100,
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = TextSlate400,
+                    modifier = Modifier
+                        .clickable(onClick = onClose)
+                        .padding(8.dp),
                 )
             }
-        } else {
-            BestScoreCard(stats)
+
+            BestScoreCard(stats, modifier = Modifier.padding(top = 24.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                StatTile(
+                MetricTile(
                     label = "ROUNDS PLAYED",
                     value = stats.totalRoundsPlayed.toString(),
+                    valueColor = TextSlate100,
                     modifier = Modifier.weight(1f),
                 )
-                StatTile(
+                MetricTile(
                     label = "LONGEST STREAK",
                     value = stats.longestStreak.toString(),
+                    valueColor = TextSlate100,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -85,79 +125,145 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                StatTile(
+                MetricTile(
                     label = "TOTAL CORRECT",
                     value = stats.totalCorrect.toString(),
+                    valueColor = Emerald400,
                     modifier = Modifier.weight(1f),
                 )
-                StatTile(
+                MetricTile(
                     label = "TOTAL PASSED",
                     value = stats.totalPassed.toString(),
+                    valueColor = Rose400,
                     modifier = Modifier.weight(1f),
                 )
             }
+
+            Box(
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxWidth()
+                    .background(Color.White.copy(alpha = 0.1f))
+                    .height(1.dp),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.clickable(onClick = { showResetConfirm = true }),
+                ) {
+                    Icon(imageVector = Icons.Filled.Delete, contentDescription = null, tint = Rose400, modifier = Modifier.size(14.dp))
+                    Text(
+                        text = "Reset Stats",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Rose400,
+                    )
+                }
+                Button(
+                    onClick = onClose,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = BorderSlate800, contentColor = Color.White),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
+                ) {
+                    Text("Close", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
+    }
+
+    if (showResetConfirm) {
+        AlertDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = { Text("Reset stats?") },
+            text = { Text("This permanently clears your rounds played, best score, and streak history. This can't be undone.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.onResetStats()
+                    showResetConfirm = false
+                }) {
+                    Text("Reset", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetConfirm = false }) {
+                    Text("Cancel")
+                }
+            },
+        )
     }
 }
 
 @Composable
-private fun BestScoreCard(stats: GameStats) {
+private fun BestScoreCard(stats: GameStats, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(top = 20.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
-            .padding(20.dp),
+            .background(TileSurface, RoundedCornerShape(16.dp))
+            .border(1.dp, BorderSlate700, RoundedCornerShape(16.dp))
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = "BEST SCORE",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 1.5.sp,
+            color = TextSlate400.copy(alpha = 0.7f),
         )
         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
             Text(
                 text = stats.bestScore.toString(),
-                style = MaterialTheme.typography.displayLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
+                fontSize = 60.sp,
+                fontWeight = FontWeight.Black,
+                color = Amber400,
             )
             Text(
                 text = " PTS",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Amber400,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
         }
-        if (stats.bestScoreDeckTitle.isNotBlank()) {
-            Text(
-                text = stats.bestScoreDeckTitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Text(
+            text = if (stats.totalRoundsPlayed == 0) "No games played yet" else "Deck: ${stats.bestScoreDeckTitle}",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextSlate400,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
 @Composable
-private fun StatTile(label: String, value: String, modifier: Modifier = Modifier) {
+private fun MetricTile(label: String, value: String, valueColor: Color, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+            .background(MetricTileSurface, RoundedCornerShape(16.dp))
+            .border(1.dp, BorderSlate700, RoundedCornerShape(16.dp))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Black,
+            color = valueColor,
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            color = TextSlate400,
             textAlign = TextAlign.Center,
+            minLines = 2,
             modifier = Modifier.padding(top = 4.dp),
         )
     }

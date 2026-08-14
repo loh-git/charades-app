@@ -8,11 +8,16 @@ import com.zoomi.charades.data.StatsRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class StatsViewModel(statsRepository: StatsRepository) : ViewModel() {
+class StatsViewModel(private val statsRepository: StatsRepository) : ViewModel() {
 
     val stats: StateFlow<GameStats> = statsRepository.stats
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GameStats())
+
+    fun onResetStats() {
+        viewModelScope.launch { statsRepository.resetStats() }
+    }
 
     class Factory(private val statsRepository: StatsRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

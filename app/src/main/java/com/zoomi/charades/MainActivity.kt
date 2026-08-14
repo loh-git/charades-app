@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,12 +23,14 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.zoomi.charades.ads.AdMobAdProvider
 import com.zoomi.charades.ads.AdProvider
 import com.zoomi.charades.ads.ConsentManager
 import com.zoomi.charades.data.AdsRepository
+import com.zoomi.charades.data.CustomCategoryRepository
 import com.zoomi.charades.data.CustomDeckRepository
 import com.zoomi.charades.data.DeckRepository
 import com.zoomi.charades.data.FavoritesRepository
@@ -67,6 +70,7 @@ class MainActivity : ComponentActivity() {
         val settingsRepository = SettingsRepository(applicationContext.appDataStore)
         val statsRepository = StatsRepository(applicationContext.appDataStore)
         val favoritesRepository = FavoritesRepository(applicationContext.appDataStore)
+        val customCategoryRepository = CustomCategoryRepository(applicationContext.appDataStore)
         val adsRepository = AdsRepository(applicationContext.appDataStore, roundsBetweenAds = PLACEHOLDER_ROUNDS_BETWEEN_ADS)
         val adProvider: AdProvider = AdMobAdProvider(PLACEHOLDER_AD_UNIT_ID)
         val consentManager = ConsentManager()
@@ -78,12 +82,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settings by settingsRepository.settings.collectAsState(initial = GameSettings())
             CharadesTheme(theme = settings.theme) {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     CharadesNavHost(
                         deckRepository,
                         settingsRepository,
                         statsRepository,
                         favoritesRepository,
+                        customCategoryRepository,
                         adsRepository,
                         adProvider,
                     )
@@ -109,6 +114,7 @@ private fun CharadesNavHost(
     settingsRepository: SettingsRepository,
     statsRepository: StatsRepository,
     favoritesRepository: FavoritesRepository,
+    customCategoryRepository: CustomCategoryRepository,
     adsRepository: AdsRepository,
     adProvider: AdProvider,
 ) {
@@ -135,20 +141,20 @@ private fun CharadesNavHost(
                 onCreateCustomDeck = { navController.navigate("createCustomDeck") },
             )
         }
-        composable("createCustomDeck") {
+        dialog("createCustomDeck") {
             val viewModel: CreateCustomDeckViewModel =
-                viewModel(factory = CreateCustomDeckViewModel.Factory(deckRepository))
+                viewModel(factory = CreateCustomDeckViewModel.Factory(deckRepository, customCategoryRepository))
             CreateCustomDeckScreen(viewModel = viewModel, onClose = { navController.popBackStack() })
         }
-        composable("settings") {
+        dialog("settings") {
             val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(settingsRepository))
             SettingsScreen(viewModel = viewModel, onClose = { navController.popBackStack() })
         }
-        composable("stats") {
+        dialog("stats") {
             val viewModel: StatsViewModel = viewModel(factory = StatsViewModel.Factory(statsRepository))
             StatsScreen(viewModel = viewModel, onClose = { navController.popBackStack() })
         }
-        composable(
+        dialog(
             route = "deckDetail/{deckId}",
             arguments = listOf(navArgument("deckId") { type = NavType.StringType }),
         ) { backStackEntry ->

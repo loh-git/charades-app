@@ -28,6 +28,7 @@ data class GameUiState(
     val timeRemaining: Int = 0,
     val score: Int = 0,
     val results: List<WordResult> = emptyList(),
+    val isPaused: Boolean = false,
 )
 
 class GameViewModel(
@@ -75,6 +76,7 @@ class GameViewModel(
         while (_uiState.value.timeRemaining > 0 && _uiState.value.phase == RoundPhase.PLAYING) {
             delay(1000)
             if (_uiState.value.phase != RoundPhase.PLAYING) return
+            if (_uiState.value.isPaused) continue
             val next = _uiState.value.timeRemaining - 1
             _uiState.value = _uiState.value.copy(timeRemaining = next)
             if (next <= 0) {
@@ -83,13 +85,23 @@ class GameViewModel(
         }
     }
 
+    fun pause() {
+        if (_uiState.value.phase == RoundPhase.PLAYING) {
+            _uiState.value = _uiState.value.copy(isPaused = true)
+        }
+    }
+
+    fun resume() {
+        _uiState.value = _uiState.value.copy(isPaused = false)
+    }
+
     fun onTiltCorrect() = registerResult(correct = true)
 
     fun onTiltPass() = registerResult(correct = false)
 
     private fun registerResult(correct: Boolean) {
         val state = _uiState.value
-        if (state.phase != RoundPhase.PLAYING) return
+        if (state.phase != RoundPhase.PLAYING || state.isPaused) return
 
         val word = state.currentWord
         val updated = state.copy(

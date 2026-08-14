@@ -21,7 +21,7 @@ object BuiltInDecks {
             title = "Animated Movies",
             category = Category.MOVIES,
             icon = Category.MOVIES.icon,
-            shortDescription = "Cartoons and animated favorites from the big screen.",
+            shortDescription = "Cartoons and animated favourites from the big screen.",
             howToPlay = "Act out a character, key scene, or the title of the animated film without speaking!",
             words = listOf(
                 "Shrek", "Frozen", "Up", "Cars", "Coco", "Moana", "Tangled", "Zootopia",
@@ -72,7 +72,7 @@ object BuiltInDecks {
             title = "Musical Instruments",
             category = Category.MUSIC,
             icon = Category.MUSIC.icon,
-            shortDescription = "Mime playing your favorite instruments.",
+            shortDescription = "Mime playing your favourite instruments.",
             howToPlay = "Mime playing the instrument — no humming or singing, just the actions!",
             words = listOf(
                 "Guitar", "Piano", "Violin", "Drums", "Trumpet", "Flute", "Saxophone", "Cello",

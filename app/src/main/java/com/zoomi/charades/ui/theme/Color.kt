@@ -2,24 +2,30 @@ package com.zoomi.charades.ui.theme
 
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.zoomi.charades.data.AppTheme
 import com.zoomi.charades.data.Category
 
-val BackgroundDark = Color(0xFF0A0E1A)
-val SurfaceDark = Color(0xFF131826)
-val SurfaceVariantDark = Color(0xFF1A2035)
-val OutlineDark = Color(0xFF262D42)
+// "Sunset Arcade" — the app's default, first-launch theme. Values below are taken directly from
+// the designer's spec (Tailwind tokens: bg-slate-950/900/800/700, amber-500, orange-600,
+// emerald-400, rose-400/500) rather than a visual read of screenshots — exact, not a guess.
+val BackgroundDark = Color(0xFF020617) // explicit designer spec
+val SurfaceDark = Color(0xFF0F172A) // slate-900
+val SurfaceVariantDark = Color(0xFF0E1529) // slate-800#
+val OutlineDark = Color(0xFF334155) // slate-700 — kept a step lighter than SurfaceVariant so borders stay visible against it
 
-val OrangeAccent = Color(0xFFFF9500)
+val OrangeAccent = Color(0xFFF59E0B) // amber-500
+val SunsetGradientEnd = Color(0xFFEA580C) // orange-600 — Sunset Arcade's gradient partner specifically (was PinkAccent)
 val PinkAccent = Color(0xFFFF3D71)
 
-val CorrectGreen = Color(0xFF2ECC71)
-val PassOrange = OrangeAccent
-val IncorrectRed = Color(0xFFE53935)
+val CorrectGreen = Color(0xFF34D399) // emerald-400
+val IncorrectRed = Color(0xFFFB7185) // rose-400 — also the "pass" color (was a plain saturated red)
+val PassRose = IncorrectRed
 
-val TextPrimary = Color(0xFFFFFFFF)
-val TextSecondary = Color(0xFF9CA3AF)
+val TextPrimary = Color(0xFFF1F5F9) // slate-100
+val TextSecondary = Color(0xFF94A3B8) // slate-400
+val CategoryMutedGray = Color(0xFF90A1B9) // unselected category-pill icon/text/border color, per explicit spec
 
-val AccentGradient = Brush.horizontalGradient(listOf(OrangeAccent, PinkAccent))
+val AccentGradient = Brush.horizontalGradient(listOf(OrangeAccent, SunsetGradientEnd))
 
 // Light theme
 val BackgroundLight = Color(0xFFF7F7FA)
@@ -78,4 +84,24 @@ val Category.swatchColor: Color
         Category.ACTIONS -> ActionsSwatch
         Category.FAMOUS_PEOPLE -> FamousPeopleSwatch
         Category.RANDOM_OBJECTS -> RandomObjectsSwatch
+    }
+
+// Preview swatches for the Settings screen's theme picker card — each theme's dominant
+// background and accent, used for the little avatar/color-chip preview, not the live theme itself.
+val AppTheme.previewBackground: Color
+    get() = when (this) {
+        AppTheme.DEFAULT -> SurfaceDark
+        AppTheme.LIGHT -> BackgroundLight
+        AppTheme.POP_ART -> BackgroundPopArt
+        AppTheme.TEST -> BackgroundTest
+        AppTheme.STUDIO_MINIMALIST -> BackgroundLight
+    }
+
+val AppTheme.previewAccent: Color
+    get() = when (this) {
+        AppTheme.DEFAULT -> OrangeAccent
+        AppTheme.LIGHT -> OrangeAccent
+        AppTheme.POP_ART -> PopArtRed
+        AppTheme.TEST -> TestBlue
+        AppTheme.STUDIO_MINIMALIST -> OrangeAccent
     }
