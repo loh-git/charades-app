@@ -74,6 +74,7 @@ import com.zoomi.charades.game.PartyMatchViewModel
 import com.zoomi.charades.game.RoundPhase
 import com.zoomi.charades.game.TiltDetector
 import com.zoomi.charades.game.hasAccelerometer
+import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.theme.LocalExtendedColors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.delay
@@ -304,15 +305,11 @@ private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Button(
+                NeutralButton(
+                    text = "Exit",
                     onClick = onExit,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B), contentColor = Color.White),
-                    contentPadding = PaddingValues(vertical = 10.dp),
-                ) {
-                    Text("Exit", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                }
+                )
                 Button(
                     onClick = onResume,
                     modifier = Modifier.weight(1f),

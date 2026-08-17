@@ -587,10 +587,10 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(extended.cardCornerRadius),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = Color(0xFF1D293D),
                         contentColor = Color(0xFFE2E8F0),
                     ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    border = BorderStroke(1.dp, Color(0xFF1D293D)),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Shuffle,

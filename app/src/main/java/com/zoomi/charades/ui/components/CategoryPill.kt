@@ -14,23 +14,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.NeutralButtonColors
 
 @Composable
 fun CategoryPill(icon: ImageVector?, label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val extended = LocalExtendedColors.current
     val shape = RoundedCornerShape(extended.cardCornerRadius)
-    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else Color(0xFF94A3B8)
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else NeutralButtonColors.pillText
     Row(
         modifier = modifier
             .background(
-                if (selected) MaterialTheme.colorScheme.primary else Color(0x990F172A),
+                if (selected) MaterialTheme.colorScheme.primary else NeutralButtonColors.pillBackground,
                 shape,
             )
-            .then(if (!selected) Modifier.border(1.dp, Color(0xFF1E293B), shape) else Modifier)
+            .then(if (!selected) Modifier.border(1.dp, NeutralButtonColors.pillBorder, shape) else Modifier)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,

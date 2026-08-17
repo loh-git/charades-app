@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,11 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,7 +37,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.zoomi.charades.data.GameStats
+import com.zoomi.charades.ui.components.ModalCloseButton
+import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.viewmodel.StatsViewModel
 
 private val CardSurface = Color(0xFF0F172A) // slate-900, opaque
@@ -50,6 +49,7 @@ private val MetricTileSurface = Color(0x991E293B) // slate-800/60
 private val BorderSlate800 = Color(0xFF1E293B)
 private val BorderSlate700 = Color(0xFF334155)
 private val TextSlate100 = Color(0xFFF1F5F9)
+private val TextSlate300 = Color(0xFFCBD5E1)
 private val TextSlate400 = Color(0xFF94A3B8)
 private val Amber400 = Color(0xFFFBBF24)
 private val Amber500 = Color(0xFFF59E0B)
@@ -61,11 +61,12 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
     val stats by viewModel.stats.collectAsState()
     var showResetConfirm by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onClose) {
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             modifier = Modifier
-                .widthIn(max = 448.dp)
+                .widthIn(max = 560.dp)
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp)
                 .background(CardSurface, RoundedCornerShape(24.dp))
                 .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
                 .verticalScroll(rememberScrollState())
@@ -92,14 +93,7 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
                         color = TextSlate100,
                     )
                 }
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = TextSlate400,
-                    modifier = Modifier
-                        .clickable(onClick = onClose)
-                        .padding(8.dp),
-                )
+                ModalCloseButton(onClick = onClose)
             }
 
             BestScoreCard(stats, modifier = Modifier.padding(top = 24.dp))
@@ -165,14 +159,7 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
                         color = Rose400,
                     )
                 }
-                Button(
-                    onClick = onClose,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BorderSlate800, contentColor = Color.White),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
-                ) {
-                    Text("Close", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                }
+                NeutralButton(text = "Close", onClick = onClose)
             }
         }
     }
@@ -214,7 +201,7 @@ private fun BestScoreCard(stats: GameStats, modifier: Modifier = Modifier) {
             fontSize = 12.sp,
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 1.5.sp,
-            color = TextSlate400.copy(alpha = 0.7f),
+            color = TextSlate300,
         )
         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
             Text(
@@ -245,10 +232,12 @@ private fun BestScoreCard(stats: GameStats, modifier: Modifier = Modifier) {
 private fun MetricTile(label: String, value: String, valueColor: Color, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
+            .height(100.dp)
             .background(MetricTileSurface, RoundedCornerShape(16.dp))
             .border(1.dp, BorderSlate700, RoundedCornerShape(16.dp))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = value,
@@ -263,7 +252,6 @@ private fun MetricTile(label: String, value: String, valueColor: Color, modifier
             letterSpacing = 1.sp,
             color = TextSlate400,
             textAlign = TextAlign.Center,
-            minLines = 2,
             modifier = Modifier.padding(top = 4.dp),
         )
     }

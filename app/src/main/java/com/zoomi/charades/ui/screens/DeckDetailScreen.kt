@@ -2,12 +2,12 @@ package com.zoomi.charades.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.zoomi.charades.data.Deck
+import com.zoomi.charades.ui.components.NeutralButton
+import com.zoomi.charades.ui.components.OptionPill
 import com.zoomi.charades.ui.theme.iconVector
 
 private val TIMER_OPTIONS = listOf(30, 60, 90)
@@ -177,7 +179,7 @@ fun DeckDetailScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             TIMER_OPTIONS.forEach { seconds ->
-                DurationOptionPill(
+                OptionPill(
                     label = "${seconds}s",
                     selected = seconds == selectedTimer,
                     onClick = { selectedTimer = seconds },
@@ -198,13 +200,13 @@ fun DeckDetailScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            DurationOptionPill(
+            OptionPill(
                 label = "Classic",
                 selected = !isPartyMode,
                 onClick = { isPartyMode = false },
                 modifier = Modifier.weight(1f),
             )
-            DurationOptionPill(
+            OptionPill(
                 label = "Party",
                 selected = isPartyMode,
                 onClick = { isPartyMode = true },
@@ -216,17 +218,14 @@ fun DeckDetailScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 48.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            DurationOptionPill(
-                label = "Back",
-                selected = false,
+            NeutralButton(
+                text = "Back",
                 onClick = onBack,
-                modifier = Modifier.weight(1f),
-                unselectedTextColor = Color(0xFFCAD5E2),
-                unselectedBorderColor = Color(0xFF182234),
+                modifier = Modifier.weight(1f).height(48.dp),
             )
             Button(
                 onClick = { onStart(selectedTimer, isPartyMode) },
-                modifier = Modifier.weight(2f),
+                modifier = Modifier.weight(2f).height(48.dp),
                 shape = RoundedCornerShape(12.dp),
             ) {
                 Text("▶  Start Game")
@@ -262,34 +261,5 @@ private fun TiltInstructionRow(
             )
         }
         Text(text = " $suffix", style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-// Matches SettingsScreen.kt's OptionButton exactly, so the timer row here reads as the same
-// control as the Default Round Duration section on the Settings page.
-@Composable
-private fun DurationOptionPill(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    unselectedTextColor: Color = Color(0xFF90A1B9),
-    unselectedBorderColor: Color = Color(0xFF212D42),
-) {
-    val shape = RoundedCornerShape(12.dp)
-    Box(
-        modifier = modifier
-            .background(if (selected) Color(0xFFF59E0B) else Color(0xFF182234), shape)
-            .then(if (!selected) Modifier.border(1.dp, unselectedBorderColor, shape) else Modifier)
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Black else FontWeight.Bold,
-            color = if (selected) Color(0xFF020617) else unselectedTextColor,
-        )
     }
 }

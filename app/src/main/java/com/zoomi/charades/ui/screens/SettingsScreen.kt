@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Settings
@@ -48,6 +47,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.zoomi.charades.data.AppTheme
 import com.zoomi.charades.data.TiltSensitivity
+import com.zoomi.charades.ui.components.ModalCloseButton
+import com.zoomi.charades.ui.components.OptionPill
 import com.zoomi.charades.ui.theme.previewAccent
 import com.zoomi.charades.ui.theme.previewBackground
 import com.zoomi.charades.ui.viewmodel.SettingsViewModel
@@ -57,12 +58,9 @@ private val BorderSlate800 = Color(0xFF1E293B)
 private val AmberBadgeBg = Color(0x33F59E0B) // amber-500/20
 private val Amber400 = Color(0xFFFBBF24)
 private val Amber500 = Color(0xFFF59E0B)
-private val Slate950 = Color(0xFF020617)
-private val Slate300 = Color(0xFFCBD5E1)
 private val Slate700 = Color(0xFF334155)
 private val TextSlate100 = Color(0xFFF8FAFC)
 private val TextSlate400 = Color(0xFF94A3B8)
-private val InactiveOptionBg = Color(0x33000000) // black/20
 private val WhiteBorder10 = Color(0x1AFFFFFF) // white/10
 
 private val ROUND_DURATION_OPTIONS = listOf(30, 60, 90)
@@ -105,14 +103,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                         color = TextSlate100,
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .background(ModalSurface, RoundedCornerShape(12.dp))
-                        .clickable(onClick = onClose)
-                        .padding(8.dp),
-                ) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = TextSlate400)
-                }
+                ModalCloseButton(onClick = onClose)
             }
 
             SectionLabel(
@@ -132,7 +123,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 ROUND_DURATION_OPTIONS.forEach { seconds ->
-                    OptionButton(
+                    OptionPill(
                         label = "${seconds}s",
                         selected = settings.defaultRoundDurationSeconds == seconds,
                         onClick = { viewModel.setRoundDuration(seconds) },
@@ -147,7 +138,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 TiltSensitivity.entries.forEach { sensitivity ->
-                    OptionButton(
+                    OptionPill(
                         label = sensitivity.name,
                         selected = settings.tiltSensitivity == sensitivity,
                         onClick = { viewModel.setTiltSensitivity(sensitivity) },
@@ -307,26 +298,6 @@ private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
                     .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
             )
         }
-    }
-}
-
-@Composable
-private fun OptionButton(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(12.dp)
-    Box(
-        modifier = modifier
-            .background(if (selected) Amber500 else InactiveOptionBg, shape)
-            .then(if (!selected) Modifier.border(1.dp, WhiteBorder10, shape) else Modifier)
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Black else FontWeight.Bold,
-            color = if (selected) Slate950 else Slate300,
-        )
     }
 }
 

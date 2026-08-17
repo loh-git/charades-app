@@ -22,11 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -49,6 +46,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.zoomi.charades.data.Category
 import com.zoomi.charades.ui.components.CategoryPill
+import com.zoomi.charades.ui.components.ModalCloseButton
 import com.zoomi.charades.ui.theme.iconVector
 import com.zoomi.charades.ui.viewmodel.CreateCustomDeckViewModel
 
@@ -185,14 +183,7 @@ private fun HeaderRow(onClose: () -> Unit) {
             Text(text = "Create Custom Deck", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
             Text(text = "Build your personalised charades deck", fontSize = 12.sp, color = TextSlate400)
         }
-        Box(
-            modifier = Modifier
-                .background(ModalSurface, RoundedCornerShape(12.dp))
-                .clickable(onClick = onClose)
-                .padding(8.dp),
-        ) {
-            Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = TextSlate400)
-        }
+        ModalCloseButton(onClick = onClose)
     }
 }
 
