@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 sealed interface DeckFilter {
     data object All : DeckFilter
     data object Favourites : DeckFilter
+    data object Custom : DeckFilter
     data class ByCategory(val category: Category) : DeckFilter
 }
 
@@ -48,6 +49,7 @@ class DeckListViewModel(
             val matchesFilter = when (filter) {
                 DeckFilter.All -> true
                 DeckFilter.Favourites -> deck.id in favoriteIds
+                DeckFilter.Custom -> deck.isCustom
                 is DeckFilter.ByCategory -> deck.category == filter.category
             }
             matchesFilter && (query.isBlank() || deck.title.contains(query, ignoreCase = true))

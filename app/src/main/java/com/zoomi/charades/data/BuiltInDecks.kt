@@ -147,10 +147,10 @@ object BuiltInDecks {
         ),
         Deck(
             id = "adventure_gear",
-            title = "Adventure Gear & Oddities",
+            title = "Adventure Gear",
             category = Category.RANDOM_OBJECTS,
             icon = Category.RANDOM_OBJECTS.icon,
-            shortDescription = "A grab-bag of outdoorsy gear and odd objects.",
+            shortDescription = "Outdoorsy gear and odd objects.",
             howToPlay = "Mime using the object — no props, no speaking!",
             words = listOf(
                 "Backpack", "Telescope", "Trampoline", "Fishing Rod", "Binoculars", "Kite",

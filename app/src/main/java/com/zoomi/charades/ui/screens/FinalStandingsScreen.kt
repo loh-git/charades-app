@@ -1,16 +1,22 @@
 package com.zoomi.charades.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,59 +26,83 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.zoomi.charades.game.PartyMatchUiState
+import com.zoomi.charades.game.TeamScore
+import com.zoomi.charades.ui.components.ScreenHeaderIcon
+import com.zoomi.charades.ui.components.hapticClick
 
 @Composable
 fun FinalStandingsScreen(partyState: PartyMatchUiState, onMainMenu: () -> Unit) {
     val ranked = partyState.teams.sortedByDescending { it.total }
-    val winner = ranked.firstOrNull()
+    val topScore = ranked.firstOrNull()?.total
+    val leaders = ranked.filter { it.total == topScore }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        ScreenHeaderIcon(Icons.Filled.EmojiEvents, contentDescription = "Trophy", size = 56.dp, modifier = Modifier.padding(top = 16.dp))
         Text(
-            text = "🏆 Final Standings",
+            text = "Final Standings",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 16.dp),
+            modifier = Modifier.padding(top = 12.dp),
         )
-        winner?.let {
+        if (leaders.isNotEmpty()) {
             Text(
-                text = "${it.name} wins with ${it.total} pts!",
+                text = when {
+                    leaders.size == 1 -> "${leaders.first().name} wins with $topScore pts!"
+                    else -> "It's a draw between ${joinTeamNames(leaders)} at $topScore pts!"
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start,
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
 
         LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth().padding(top = 20.dp)) {
             itemsIndexed(ranked) { index, team ->
-                Row(
+                // Competition ("1224") ranking: teams tied on score share a rank, and the next
+                // distinct score skips ahead accordingly rather than just using list position.
+                val rank = ranked.take(index).count { it.total > team.total } + 1
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        text = "#${index + 1}  ${team.name}",
+                        text = "#$rank  ${team.name}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = "${team.total} pts",
                         style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
         }
 
-        Button(onClick = onMainMenu, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-            Text("▦  Main Menu")
+        Button(
+            onClick = hapticClick(onMainMenu),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Icon(imageVector = Icons.Filled.Home, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Main Menu")
         }
     }
+}
+
+private fun joinTeamNames(teams: List<TeamScore>): String {
+    val names = teams.map { it.name }
+    return names.dropLast(1).joinToString(", ") + " & " + names.last()
 }

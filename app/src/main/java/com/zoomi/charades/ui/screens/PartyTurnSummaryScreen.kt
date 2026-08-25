@@ -4,22 +4,31 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.zoomi.charades.game.PartyMatchUiState
 import com.zoomi.charades.game.WordResult
+import com.zoomi.charades.ui.components.hapticClick
 
 @Composable
 fun PartyTurnSummaryScreen(
@@ -45,12 +54,18 @@ fun PartyTurnSummaryScreen(
             modifier = Modifier.padding(top = 4.dp),
         )
 
-        Text(
-            text = "🏆 Scoreboard",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
-        )
+        ) {
+            Icon(imageVector = Icons.Filled.EmojiEvents, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Scoreboard",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+        }
         LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
             items(partyState.teams) { team ->
                 val isUpNext = team.name == partyState.upNextTeamName
@@ -64,12 +79,19 @@ fun PartyTurnSummaryScreen(
                         )
                         .padding(12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = if (isUpNext) "▶ ${team.name}" else team.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (isUpNext) FontWeight.Bold else FontWeight.Normal,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isUpNext) {
+                            Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                        Text(
+                            text = team.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isUpNext) FontWeight.Bold else FontWeight.Normal,
+                        )
+                    }
                     Text(
                         text = "${team.total} pts",
                         style = MaterialTheme.typography.bodyLarge,
@@ -92,10 +114,12 @@ fun PartyTurnSummaryScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Button(onClick = onNextTurn, modifier = Modifier.fillMaxWidth()) {
-                Text("▶  Start ${partyState.upNextTeamName ?: "Next"}'s Turn")
+            Button(onClick = hapticClick(onNextTurn), modifier = Modifier.fillMaxWidth()) {
+                Text("Start ${partyState.upNextTeamName ?: "Next"}'s Turn")
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
             }
-            OutlinedButton(onClick = onEndMatch, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = hapticClick(onEndMatch), modifier = Modifier.fillMaxWidth()) {
                 Text("End Match")
             }
         }

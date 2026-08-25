@@ -3,8 +3,6 @@ package com.zoomi.charades.ui.screens
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -31,19 +30,23 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -71,23 +74,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.zoomi.charades.data.Category
+import com.zoomi.charades.data.CustomCategoryRepository
 import com.zoomi.charades.data.Deck
+import com.zoomi.charades.data.DeckRepository
+import com.zoomi.charades.data.GameSettings
+import com.zoomi.charades.data.SettingsRepository
+import com.zoomi.charades.data.StatsRepository
 import com.zoomi.charades.ui.components.CategoryPill
+import com.zoomi.charades.ui.components.ModalScaffold
+import com.zoomi.charades.ui.components.responsiveModalHeight
+import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
 import com.zoomi.charades.ui.theme.iconVector
 import com.zoomi.charades.ui.theme.swatchColor
+import com.zoomi.charades.ui.viewmodel.CreateCustomDeckViewModel
 import com.zoomi.charades.ui.viewmodel.DeckFilter
 import com.zoomi.charades.ui.viewmodel.DeckListViewModel
+import com.zoomi.charades.ui.viewmodel.SettingsViewModel
+import com.zoomi.charades.ui.viewmodel.StatsViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun DeckListScreen(
     viewModel: DeckListViewModel,
-    onSelectDeck: (Deck) -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenStats: () -> Unit,
-    onCreateCustomDeck: () -> Unit,
+    deckRepository: DeckRepository,
+    customCategoryRepository: CustomCategoryRepository,
+    settingsRepository: SettingsRepository,
+    statsRepository: StatsRepository,
+    onStartGame: (deck: Deck, timerSeconds: Int) -> Unit,
+    onStartPartyGame: (deck: Deck, timerSeconds: Int) -> Unit,
 ) {
     val extended = LocalExtendedColors.current
     val decks by viewModel.filteredDecks.collectAsState()
@@ -96,6 +112,10 @@ fun DeckListScreen(
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val favoriteDeckIds by viewModel.favoriteDeckIds.collectAsState()
     var shuffleDialogOpen by remember { mutableStateOf(false) }
+    var settingsOpen by remember { mutableStateOf(false) }
+    var statsOpen by remember { mutableStateOf(false) }
+    var createCustomDeckOpen by remember { mutableStateOf(false) }
+    var deckForDetail by remember { mutableStateOf<Deck?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         LazyVerticalGrid(
@@ -108,15 +128,15 @@ fun DeckListScreen(
             fullWidthItem {
                 TopBar(
                     onShuffle = { shuffleDialogOpen = true },
-                    onOpenStats = onOpenStats,
-                    onOpenSettings = onOpenSettings,
+                    onOpenStats = { statsOpen = true },
+                    onOpenSettings = { settingsOpen = true },
                 )
             }
             fullWidthItem {
                 CategoryFilterRow(selected = selectedFilter, onSelect = viewModel::onFilterSelected)
             }
             fullWidthItem { SearchField(query = query, onQueryChange = viewModel::onSearchQueryChange) }
-            fullWidthItem { AddCustomDeckButton(onCreateCustomDeck) }
+            fullWidthItem { AddCustomDeckButton { createCustomDeckOpen = true } }
 
             if (decks.isEmpty()) {
                 fullWidthItem {
@@ -132,7 +152,7 @@ fun DeckListScreen(
                     DeckCard(
                         deck = deck,
                         isFavorited = deck.id in favoriteDeckIds,
-                        onClick = { onSelectDeck(deck) },
+                        onClick = { deckForDetail = deck },
                         onToggleFavorite = { viewModel.onToggleFavorite(deck.id) },
                     )
                 }
@@ -140,7 +160,7 @@ fun DeckListScreen(
         }
 
         if (extended.useBottomNav) {
-            BottomNavBar(onOpenStats = onOpenStats, onOpenSettings = onOpenSettings)
+            BottomNavBar(onOpenStats = { statsOpen = true }, onOpenSettings = { settingsOpen = true })
         }
     }
 
@@ -150,8 +170,37 @@ fun DeckListScreen(
             onDismiss = { shuffleDialogOpen = false },
             onPlayDeck = { deck ->
                 shuffleDialogOpen = false
-                onSelectDeck(deck)
+                deckForDetail = deck
             },
+        )
+    }
+
+    if (settingsOpen) {
+        val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(settingsRepository))
+        SettingsScreen(viewModel = settingsViewModel, onClose = { settingsOpen = false })
+    }
+
+    if (statsOpen) {
+        val statsViewModel: StatsViewModel = viewModel(factory = StatsViewModel.Factory(statsRepository))
+        StatsScreen(viewModel = statsViewModel, onClose = { statsOpen = false })
+    }
+
+    if (createCustomDeckOpen) {
+        val createCustomDeckViewModel: CreateCustomDeckViewModel =
+            viewModel(factory = CreateCustomDeckViewModel.Factory(deckRepository, customCategoryRepository))
+        CreateCustomDeckScreen(viewModel = createCustomDeckViewModel, onClose = { createCustomDeckOpen = false })
+    }
+
+    deckForDetail?.let { deck ->
+        val settings by settingsRepository.settings.collectAsState(initial = GameSettings())
+        DeckDetailScreen(
+            deck = deck,
+            defaultTimerSeconds = settings.defaultRoundDurationSeconds,
+            onStart = { timerSeconds, isPartyMode ->
+                deckForDetail = null
+                if (isPartyMode) onStartPartyGame(deck, timerSeconds) else onStartGame(deck, timerSeconds)
+            },
+            onBack = { deckForDetail = null },
         )
     }
 }
@@ -176,6 +225,7 @@ private fun TopBar(onShuffle: () -> Unit, onOpenStats: () -> Unit, onOpenSetting
                 },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 28.sp,
                 maxLines = 2,
                 modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
             )
@@ -244,10 +294,14 @@ private fun TopBarIconButton(
                     Modifier
                 },
             )
-            .clickable(onClick = {
-                if (spinOnClick) spinTrigger++
-                onClick()
-            }),
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = hapticClick {
+                    if (spinOnClick) spinTrigger++
+                    onClick()
+                },
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -271,24 +325,25 @@ private fun BottomNavBar(onOpenStats: () -> Unit, onOpenSettings: () -> Unit) {
             .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
-        BottomNavItem(icon = "🗂️", label = "Decks", selected = true, onClick = {})
-        BottomNavItem(icon = "📊", label = "Stats", selected = false, onClick = onOpenStats)
-        BottomNavItem(icon = "⚙️", label = "Settings", selected = false, onClick = onOpenSettings)
+        BottomNavItem(icon = Icons.Filled.Folder, label = "Decks", selected = true, onClick = {})
+        BottomNavItem(icon = Icons.Filled.BarChart, label = "Stats", selected = false, onClick = onOpenStats)
+        BottomNavItem(icon = Icons.Filled.Settings, label = "Settings", selected = false, onClick = onOpenSettings)
     }
 }
 
 @Composable
-private fun BottomNavItem(icon: String, label: String, selected: Boolean, onClick: () -> Unit) {
+private fun BottomNavItem(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
+    val tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 4.dp),
+        modifier = Modifier.clickable(onClick = hapticClick(onClick)).padding(horizontal = 16.dp, vertical = 4.dp),
     ) {
-        Text(text = icon, fontSize = 22.sp)
+        Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = tint,
             modifier = Modifier.padding(top = 2.dp),
         )
     }
@@ -314,6 +369,12 @@ private fun CategoryFilterRow(selected: DeckFilter, onSelect: (DeckFilter) -> Un
             label = "All Decks",
             selected = selected == DeckFilter.All,
             onClick = { onSelect(DeckFilter.All) },
+        )
+        CategoryPill(
+            icon = Icons.Filled.Category,
+            label = "Custom",
+            selected = selected == DeckFilter.Custom,
+            onClick = { onSelect(DeckFilter.Custom) },
         )
         Category.entries.forEach { category ->
             CategoryPill(
@@ -349,7 +410,7 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
 private fun AddCustomDeckButton(onClick: () -> Unit) {
     val extended = LocalExtendedColors.current
     Button(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
         shape = RoundedCornerShape(extended.cardCornerRadius),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.Black),
@@ -396,7 +457,7 @@ private fun DeckCard(deck: Deck, isFavorited: Boolean, onClick: () -> Unit, onTo
                     Modifier
                 },
             )
-            .clickable(interactionSource = interactionSource, indication = LocalIndication.current, onClick = onClick),
+            .clickable(interactionSource = interactionSource, indication = null, onClick = hapticClick(onClick)),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -407,16 +468,12 @@ private fun DeckCard(deck: Deck, isFavorited: Boolean, onClick: () -> Unit, onTo
                         .border(1.dp, Color(0xFF6C4818), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (deck.isCustom) {
-                        Text(text = deck.icon, fontSize = (extended.deckIconSize.value * 0.46f).sp)
-                    } else {
-                        Icon(
-                            imageVector = deck.category.iconVector,
-                            contentDescription = deck.category.displayName,
-                            tint = Color(0xFFFFB900),
-                            modifier = Modifier.size(extended.deckIconSize * 0.5f),
-                        )
-                    }
+                    Icon(
+                        imageVector = if (deck.customCategoryName != null) Icons.Filled.Category else deck.category.iconVector,
+                        contentDescription = deck.customCategoryName ?: deck.category.displayName,
+                        tint = Color(0xFFFFB900),
+                        modifier = Modifier.size(extended.deckIconSize * 0.5f),
+                    )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -460,13 +517,23 @@ private fun DeckCard(deck: Deck, isFavorited: Boolean, onClick: () -> Unit, onTo
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
             HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
-            Text(
-                text = "Select Deck  ▶",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 10.dp),
-            )
+            ) {
+                Text(
+                    text = "Select Deck ",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
         }
     }
 }
@@ -487,23 +554,25 @@ private fun FavoriteStar(isFavorited: Boolean, onToggleFavorite: () -> Unit) {
         }
     }
     Box(contentAlignment = Alignment.Center) {
-        Text(
-            text = "★",
-            fontSize = 34.sp,
-            color = starColor,
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = null,
+            tint = starColor,
             modifier = Modifier
+                .size(38.dp)
                 .graphicsLayer { alpha = glowAlpha.value }
                 .blur(6.dp),
         )
-        Text(
-            text = if (isFavorited) "★" else "☆",
-            fontSize = 21.sp,
-            color = starColor,
+        Icon(
+            imageVector = if (isFavorited) Icons.Filled.Star else Icons.Filled.StarBorder,
+            contentDescription = if (isFavorited) "Remove from favorites" else "Add to favorites",
+            tint = starColor,
             modifier = Modifier
+                .size(26.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = {
+                    onClick = hapticClick {
                         glowTrigger++
                         onToggleFavorite()
                     },
@@ -513,15 +582,23 @@ private fun FavoriteStar(isFavorited: Boolean, onToggleFavorite: () -> Unit) {
     }
 }
 
+private fun List<Deck>.randomExcluding(exclude: Deck): Deck {
+    val candidates = if (size > 1) filter { it.id != exclude.id } else this
+    return candidates.random()
+}
+
 @Composable
 private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDeck: (Deck) -> Unit) {
     val extended = LocalExtendedColors.current
     var currentDeck by remember { mutableStateOf(decks.random()) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    ModalScaffold(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
+                .widthIn(max = 440.dp)
                 .fillMaxWidth()
+                .height(responsiveModalHeight(300.dp))
+                .padding(horizontal = 24.dp)
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp)),
         ) {
             Icon(
@@ -534,13 +611,13 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = onDismiss,
+                        onClick = hapticClick(onDismiss),
                     )
                     .padding(4.dp),
             )
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -552,22 +629,20 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
                     .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center,
             ) {
-                if (currentDeck.isCustom) {
-                    Text(text = currentDeck.icon, fontSize = 34.sp)
-                } else {
-                    Icon(
-                        imageVector = currentDeck.category.iconVector,
-                        contentDescription = currentDeck.category.displayName,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(36.dp),
-                    )
-                }
+                Icon(
+                    imageVector = if (currentDeck.customCategoryName != null) Icons.Filled.Category else currentDeck.category.iconVector,
+                    contentDescription = currentDeck.customCategoryName ?: currentDeck.category.displayName,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp),
+                )
             }
             Text(
                 text = currentDeck.title,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 16.dp),
             )
             Text(
@@ -575,37 +650,49 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
 
+            Spacer(modifier = Modifier.weight(0.5f))
+
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedButton(
-                    onClick = { currentDeck = decks.random() },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(extended.cardCornerRadius),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color(0xFF1D293D),
-                        contentColor = Color(0xFFE2E8F0),
-                    ),
-                    border = BorderStroke(1.dp, Color(0xFF1D293D)),
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .background(Color(0xFF1D293D), RoundedCornerShape(extended.cardCornerRadius))
+                        .border(1.dp, Color(0xFF1D293D), RoundedCornerShape(extended.cardCornerRadius))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = hapticClick { currentDeck = decks.randomExcluding(currentDeck) },
+                        ),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Shuffle,
                         contentDescription = null,
+                        tint = Color(0xFFE2E8F0),
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Shuffle")
+                    Text("Shuffle", color = Color(0xFFE2E8F0), style = MaterialTheme.typography.labelLarge)
                 }
                 Button(
-                    onClick = { onPlayDeck(currentDeck) },
-                    modifier = Modifier.weight(1f),
+                    onClick = hapticClick { onPlayDeck(currentDeck) },
+                    modifier = Modifier.weight(1f).height(48.dp),
                     shape = RoundedCornerShape(extended.cardCornerRadius),
                 ) {
-                    Text("▶  Play")
+                    Text("Play")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                 }
             }
             }

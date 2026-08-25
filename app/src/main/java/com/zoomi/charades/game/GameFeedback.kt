@@ -21,6 +21,7 @@ private const val SAMPLE_RATE = 44100
 class GameFeedback(context: Context) {
 
     var soundEnabled: Boolean = true
+    var hapticsEnabled: Boolean = true
 
     private val vibrator: Vibrator =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -38,18 +39,25 @@ class GameFeedback(context: Context) {
     private val correctSamples: ShortArray by lazy { generateCorrectDing() }
     private val incorrectSamples: ShortArray by lazy { generateIncorrectBuzz() }
 
+    fun onCountdownTick() {
+        if (hapticsEnabled) vibrate(50)
+    }
+
     fun onEvent(event: GameEvent) {
         when (event) {
             GameEvent.CORRECT -> {
-                vibrate(120)
+                if (hapticsEnabled) vibrate(120)
                 playPcm(correctSamples)
             }
             GameEvent.PASS -> {
-                vibrate(60)
+                // Matches CORRECT's duration — at PASS's old 60ms this often didn't register as
+                // a felt buzz at all, since many vibration motors need ~80-100ms to ramp up to a
+                // perceptible amplitude, making PASS read as "no haptic" next to CORRECT.
+                if (hapticsEnabled) vibrate(120)
                 playPcm(incorrectSamples)
             }
             GameEvent.TIME_UP -> {
-                vibrate(400)
+                if (hapticsEnabled) vibrate(400)
                 playTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 400)
             }
         }

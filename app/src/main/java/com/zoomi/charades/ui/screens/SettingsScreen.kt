@@ -1,7 +1,10 @@
 package com.zoomi.charades.ui.screens
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,9 +12,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,13 +28,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,19 +50,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.zoomi.charades.data.AppTheme
 import com.zoomi.charades.data.TiltSensitivity
 import com.zoomi.charades.ui.components.ModalCloseButton
+import com.zoomi.charades.ui.components.ModalScaffold
+import com.zoomi.charades.ui.components.responsiveModalHeight
+import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.OptionPill
+import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.previewAccent
 import com.zoomi.charades.ui.theme.previewBackground
 import com.zoomi.charades.ui.viewmodel.SettingsViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 private val ModalSurface = Color(0xFF0F172A) // slate-900, opaque
 private val BorderSlate800 = Color(0xFF1E293B)
@@ -65,17 +86,20 @@ private val WhiteBorder10 = Color(0x1AFFFFFF) // white/10
 
 private val ROUND_DURATION_OPTIONS = listOf(30, 60, 90)
 private const val PRIVACY_POLICY_URL = "https://loh-git.github.io/zoomi-privacy-policy/"
+private const val FEEDBACK_EMAIL = "zoomistudios@outlook.com"
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
     val settings by viewModel.settings.collectAsState()
     val context = LocalContext.current
+    var feedbackOpen by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    ModalScaffold(onDismissRequest = onClose) {
         Column(
             modifier = Modifier
                 .widthIn(max = 560.dp)
                 .fillMaxWidth()
+                .height(responsiveModalHeight(760.dp))
                 .padding(horizontal = 16.dp)
                 .background(ModalSurface, RoundedCornerShape(24.dp))
                 .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
@@ -106,10 +130,11 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                 ModalCloseButton(onClick = onClose)
             }
 
-            SectionLabel(
-                "🎨 Visual Theme (${AppTheme.entries.size} Available)",
-                modifier = Modifier.padding(top = 24.dp),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 24.dp)) {
+                Icon(imageVector = Icons.Filled.Palette, contentDescription = null, tint = TextSlate400, modifier = Modifier.size(14.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                SectionLabel("Visual Theme (${AppTheme.entries.size} Available)")
+            }
             ThemeDropdownSelector(
                 selected = settings.theme,
                 onSelect = viewModel::setTheme,
@@ -155,37 +180,164 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                 modifier = Modifier.padding(top = 20.dp),
             )
             ToggleRow(
+                title = "Haptic Feedback",
+                subtitle = "Enable/disable haptics",
+                checked = settings.hapticsEnabled,
+                onCheckedChange = viewModel::setHapticsEnabled,
+            )
+            ToggleRow(
+                title = "Fullscreen Mode",
+                subtitle = "Hide the status bar and system buttons",
+                checked = settings.fullscreenModeEnabled,
+                onCheckedChange = viewModel::setFullscreenModeEnabled,
+            )
+            ToggleRow(
                 title = "Touch Control Fallback",
-                subtitle = "Display manual Pass & Correct buttons",
+                subtitle = "Display on-screen buttons",
                 checked = settings.touchFallbackEnabled,
                 onCheckedChange = viewModel::setTouchFallbackEnabled,
             )
             ToggleRow(
                 title = "Invert Tilt Direction",
-                subtitle = "Default: Tilt DOWN = Pass, Tilt UP = Correct",
+                subtitle = "Default: DOWN = Pass, UP = Correct",
                 checked = settings.invertTilt,
                 onCheckedChange = viewModel::setInvertTilt,
             )
 
             HorizontalDivider(modifier = Modifier.padding(top = 8.dp, bottom = 8.dp), color = WhiteBorder10)
-            Box(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth()
-                    .border(1.dp, WhiteBorder10, RoundedCornerShape(12.dp))
-                    .clickable(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))) },
-                    )
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center,
+            SettingsLinkRow(
+                icon = Icons.Filled.Email,
+                label = "Submit Feedback",
+                onClick = { feedbackOpen = true },
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            SettingsLinkRow(
+                icon = Icons.Filled.Lock,
+                label = "Privacy Policy",
+                onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))) },
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+    }
+
+    if (feedbackOpen) {
+        SubmitFeedbackDialog(onClose = { feedbackOpen = false })
+    }
+}
+
+@Composable
+private fun SettingsLinkRow(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(1.dp, WhiteBorder10, RoundedCornerShape(12.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = hapticClick(onClick),
+            )
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(imageVector = icon, contentDescription = null, tint = Amber400, modifier = Modifier.size(14.dp))
+            Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
+        }
+    }
+}
+
+@Composable
+private fun SubmitFeedbackDialog(onClose: () -> Unit) {
+    val context = LocalContext.current
+    var message by remember { mutableStateOf("") }
+
+    ModalScaffold(onDismissRequest = onClose) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 480.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .background(ModalSurface, RoundedCornerShape(24.dp))
+                .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
+                .padding(24.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(imageVector = Icons.Filled.Lock, contentDescription = null, tint = Amber400, modifier = Modifier.size(14.dp))
-                    Text(text = "Privacy Policy & About", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
+                Text(text = "Submit Feedback", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
+                ModalCloseButton(onClick = onClose)
+            }
+            Text(
+                text = "Tell us what's working, what isn't, or what you'd like to see. This opens your email app to send " +
+                    "the message — your email address will be visible to us as the sender, and we'll attach your device " +
+                    "model and the submission time for our records. We don't collect anything beyond that.",
+                fontSize = 12.sp,
+                color = TextSlate400,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            OutlinedTextField(
+                value = message,
+                onValueChange = { message = it },
+                placeholder = { Text("What's on your mind?", color = TextSlate400, fontSize = 14.sp) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xCC1E293B),
+                    unfocusedContainerColor = Color(0xCC1E293B),
+                    focusedBorderColor = Amber500,
+                    unfocusedBorderColor = Slate700,
+                    cursorColor = Amber500,
+                    focusedTextColor = TextSlate100,
+                    unfocusedTextColor = TextSlate100,
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().height(140.dp).padding(top = 16.dp),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                NeutralButton(
+                    text = "Cancel",
+                    onClick = onClose,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                )
+                Button(
+                    onClick = hapticClick {
+                        if (sendFeedbackEmail(context, message)) onClose()
+                    },
+                    enabled = message.isNotBlank(),
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text("Send")
                 }
             }
         }
     }
+}
+
+// Manufacturer/model/OS version identify the hardware, not the person — no name, account, or
+// device identifier (IMEI, Android ID, ad ID) goes into the prefix this app builds. Sent via
+// ACTION_SENDTO so the user's own email app composes and sends it — this app never touches an
+// SMTP credential, but that also means the recipient will see the user's email address as the
+// sender, since that's attached by their email app, not by us; the UI copy discloses this.
+// Returns false (and leaves the draft in place) if no app on the device can handle it.
+private fun sendFeedbackEmail(context: Context, message: String): Boolean {
+    val timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now())
+    val body = "Device: ${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE}\n" +
+        "Submitted: $timestamp\n\n$message"
+    val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(FEEDBACK_EMAIL))
+        putExtra(Intent.EXTRA_SUBJECT, "Ultimate Charades Feedback")
+        putExtra(Intent.EXTRA_TEXT, body)
+    }
+    if (intent.resolveActivity(context.packageManager) == null) {
+        Toast.makeText(context, "No email app found to send feedback.", Toast.LENGTH_LONG).show()
+        return false
+    }
+    context.startActivity(intent)
+    return true
 }
 
 @Composable
@@ -203,30 +355,59 @@ private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
 @Composable
 private fun ThemeDropdownSelector(selected: AppTheme, onSelect: (AppTheme) -> Unit, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
+    var triggerHeightPx by remember { mutableStateOf(0) }
     val shape = RoundedCornerShape(12.dp)
-    Box(modifier = modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .onGloballyPositioned { triggerHeightPx = it.size.height }
                 .background(BorderSlate800, shape)
                 .border(1.dp, Slate700, shape)
-                .clickable(onClick = { expanded = true })
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = hapticClick { expanded = true },
+                )
                 .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(text = selected.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
-            Text(text = "▾", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
+            Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null, tint = TextSlate100, modifier = Modifier.size(24.dp))
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            AppTheme.entries.forEach { theme ->
-                DropdownMenuItem(
-                    text = { Text(theme.label) },
-                    onClick = {
-                        onSelect(theme)
-                        expanded = false
-                    },
-                )
+        if (expanded) {
+            Popup(
+                alignment = Alignment.TopStart,
+                offset = IntOffset(0, triggerHeightPx + with(LocalDensity.current) { 4.dp.roundToPx() }),
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(focusable = true),
+            ) {
+                Surface(
+                    modifier = Modifier.width(maxWidth),
+                    shape = shape,
+                    color = BorderSlate800,
+                    border = BorderStroke(1.dp, Slate700),
+                    tonalElevation = 3.dp,
+                    shadowElevation = 3.dp,
+                ) {
+                    Column {
+                        AppTheme.entries.forEach { theme ->
+                            Text(
+                                text = theme.label,
+                                fontSize = 14.sp,
+                                color = TextSlate100,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(onClick = hapticClick {
+                                        onSelect(theme)
+                                        expanded = false
+                                    })
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -240,14 +421,10 @@ private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
             .background(Color(0xCC1E293B), RoundedCornerShape(16.dp)) // slate-800/80
             .border(1.dp, Amber500.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
             .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
     ) {
-        Row(
-            modifier = Modifier.weight(1f, fill = false),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -264,38 +441,28 @@ private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
                     Icon(imageVector = Icons.Filled.Palette, contentDescription = null, tint = Color.White, modifier = Modifier.size(10.dp))
                 }
             }
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(text = theme.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
-                    Box(
-                        modifier = Modifier
-                            .background(AmberBadgeBg, RoundedCornerShape(50))
-                            .padding(horizontal = 8.dp),
-                    ) {
-                        Text(text = "Active", fontSize = 8.sp, lineHeight = 16.sp, color = Amber400)
-                    }
-                }
-                Text(
-                    text = theme.description,
-                    fontSize = 12.sp,
-                    color = TextSlate400,
-                    modifier = Modifier.padding(top = 2.dp).width(185.dp),
-
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .background(theme.previewBackground, CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .background(theme.previewAccent, CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
                 )
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .background(theme.previewBackground, CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
-            )
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .background(theme.previewAccent, CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
+        Column {
+            Text(text = theme.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
+            Text(
+                text = theme.description,
+                fontSize = 12.sp,
+                color = TextSlate400,
+                modifier = Modifier.padding(top = 2.dp),
             )
         }
     }
@@ -335,7 +502,7 @@ private fun ToggleSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = { onCheckedChange(!checked) },
+                onClick = hapticClick { onCheckedChange(!checked) },
             ),
     ) {
         Box(

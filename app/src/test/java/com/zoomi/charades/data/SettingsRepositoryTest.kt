@@ -29,12 +29,14 @@ class SettingsRepositoryTest {
     fun `defaults to sensible values`() = runTest {
         val settings = newRepository().settings.first()
 
-        assertEquals(60, settings.defaultRoundDurationSeconds)
+        assertEquals(30, settings.defaultRoundDurationSeconds)
         assertEquals(TiltSensitivity.MEDIUM, settings.tiltSensitivity)
         assertTrue(settings.soundEnabled)
         assertFalse(settings.touchFallbackEnabled)
         assertFalse(settings.invertTilt)
         assertEquals(AppTheme.DEFAULT, settings.theme)
+        assertTrue(settings.hapticsEnabled)
+        assertTrue(settings.fullscreenModeEnabled)
     }
 
     @Test
@@ -46,6 +48,8 @@ class SettingsRepositoryTest {
         repository.setSoundEnabled(false)
         repository.setInvertTilt(true)
         repository.setTheme(AppTheme.POP_ART)
+        repository.setHapticsEnabled(false)
+        repository.setFullscreenModeEnabled(false)
 
         val settings = repository.settings.first()
         assertEquals(90, settings.defaultRoundDurationSeconds)
@@ -53,5 +57,7 @@ class SettingsRepositoryTest {
         assertFalse(settings.soundEnabled)
         assertTrue(settings.invertTilt)
         assertEquals(AppTheme.POP_ART, settings.theme)
+        assertFalse(settings.hapticsEnabled)
+        assertFalse(settings.fullscreenModeEnabled)
     }
 }

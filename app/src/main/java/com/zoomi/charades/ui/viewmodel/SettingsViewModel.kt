@@ -41,6 +41,14 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
         viewModelScope.launch { settingsRepository.setTheme(theme) }
     }
 
+    fun setHapticsEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setHapticsEnabled(enabled) }
+    }
+
+    fun setFullscreenModeEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setFullscreenModeEnabled(enabled) }
+    }
+
     class Factory(private val settingsRepository: SettingsRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

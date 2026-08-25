@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -56,8 +57,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,7 +73,9 @@ import com.zoomi.charades.game.PartyMatchViewModel
 import com.zoomi.charades.game.RoundPhase
 import com.zoomi.charades.game.TiltDetector
 import com.zoomi.charades.game.hasAccelerometer
+import com.zoomi.charades.ui.components.ModalScaffold
 import com.zoomi.charades.ui.components.NeutralButton
+import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.delay
@@ -155,8 +156,15 @@ fun GameScreen(
 
     val feedback = remember { GameFeedback(context) }
     feedback.soundEnabled = settings.soundEnabled
+    feedback.hapticsEnabled = settings.hapticsEnabled
     DisposableEffect(Unit) {
         onDispose { feedback.release() }
+    }
+
+    LaunchedEffect(state.phase, state.countdownValue) {
+        if (state.phase == RoundPhase.COUNTDOWN) {
+            feedback.onCountdownTick()
+        }
     }
 
     KeepScreenOn()
@@ -284,7 +292,7 @@ fun GameScreen(
 
 @Composable
 private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
-    Dialog(onDismissRequest = onResume, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    ModalScaffold(onDismissRequest = onResume) {
         Column(
             modifier = Modifier
                 .widthIn(max = 320.dp)
@@ -311,13 +319,13 @@ private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
                     modifier = Modifier.weight(1f),
                 )
                 Button(
-                    onClick = onResume,
+                    onClick = hapticClick(onResume),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B), contentColor = Color(0xFF020617)),
                     contentPadding = PaddingValues(vertical = 10.dp),
                 ) {
-                    Text("Resume", fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Resume", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
@@ -345,12 +353,21 @@ private fun CountdownContent(value: Int, invertTilt: Boolean, deckTitle: String)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                 .padding(horizontal = 20.dp, vertical = 12.dp),
         ) {
-            Text(
-                text = "📱  PLACE PHONE ON FOREHEAD!",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.Smartphone,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "PLACE PHONE ON FOREHEAD!",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
             Text(
                 text = "Screen facing out towards teammates",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -433,7 +450,7 @@ private fun PlayingContent(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = onPause,
+                            onClick = hapticClick(onPause),
                         ),
                     contentAlignment = Alignment.Center,
                 ) {

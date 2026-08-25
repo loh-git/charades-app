@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,11 +35,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.zoomi.charades.data.GameStats
+import com.zoomi.charades.ui.components.ImmersiveDialog
 import com.zoomi.charades.ui.components.ModalCloseButton
+import com.zoomi.charades.ui.components.ModalScaffold
+import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
+import com.zoomi.charades.ui.components.hapticClick
+import com.zoomi.charades.ui.theme.NeutralButtonColors
 import com.zoomi.charades.ui.viewmodel.StatsViewModel
 
 private val CardSurface = Color(0xFF0F172A) // slate-900, opaque
@@ -53,19 +55,24 @@ private val TextSlate300 = Color(0xFFCBD5E1)
 private val TextSlate400 = Color(0xFF94A3B8)
 private val Amber400 = Color(0xFFFBBF24)
 private val Amber500 = Color(0xFFF59E0B)
-private val Emerald400 = Color(0xFF34D399)
 private val Rose400 = Color(0xFFFB7185)
+
+// Matches GameScreen's round-feedback flash colors exactly, so these tiles read as the same
+// signal as a correct/passed answer during a round.
+private val RoundCorrectColor = Color(0xFF00D492)
+private val RoundPassColor = Color(0xFFFF2056)
 
 @Composable
 fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
     val stats by viewModel.stats.collectAsState()
     var showResetConfirm by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    ModalScaffold(onDismissRequest = onClose) {
         Column(
             modifier = Modifier
                 .widthIn(max = 560.dp)
                 .fillMaxWidth()
+                .height(responsiveModalHeight(590.dp))
                 .padding(horizontal = 16.dp)
                 .background(CardSurface, RoundedCornerShape(24.dp))
                 .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
@@ -122,7 +129,7 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
                 MetricTile(
                     label = "TOTAL CORRECT",
                     value = stats.totalCorrect.toString(),
-                    valueColor = Emerald400,
+                    valueColor = RoundCorrectColor,
                     modifier = Modifier.weight(1f),
                 )
                 MetricTile(
@@ -149,12 +156,12 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.clickable(onClick = { showResetConfirm = true }),
+                    modifier = Modifier.clickable(onClick = hapticClick { showResetConfirm = true }),
                 ) {
                     Icon(imageVector = Icons.Filled.Delete, contentDescription = null, tint = Rose400, modifier = Modifier.size(14.dp))
                     Text(
                         text = "Reset Stats",
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Rose400,
                     )
@@ -167,19 +174,19 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
     if (showResetConfirm) {
         AlertDialog(
             onDismissRequest = { showResetConfirm = false },
-            title = { Text("Reset stats?") },
-            text = { Text("This permanently clears your rounds played, best score, and streak history. This can't be undone.") },
+            title = { ImmersiveDialog(); Text("Reset Stats?") },
+            text = { Text("This permanently clears your rounds played, best score, streak history and total correct/passed.") },
             confirmButton = {
-                TextButton(onClick = {
+                TextButton(onClick = hapticClick {
                     viewModel.onResetStats()
                     showResetConfirm = false
                 }) {
-                    Text("Reset", color = MaterialTheme.colorScheme.error)
+                    Text("Reset", color = Rose400)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showResetConfirm = false }) {
-                    Text("Cancel")
+                TextButton(onClick = hapticClick { showResetConfirm = false }) {
+                    Text("Cancel", color = NeutralButtonColors.actionText)
                 }
             },
         )

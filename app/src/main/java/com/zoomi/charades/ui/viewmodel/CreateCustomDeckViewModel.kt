@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private const val MIN_WORDS = 3
+private const val MIN_WORDS = 1
 
 class CreateCustomDeckViewModel(
     private val deckRepository: DeckRepository,
@@ -114,8 +114,22 @@ class CreateCustomDeckViewModel(
                     customCategoryName = customCategory,
                 ),
             )
+            resetFields()
             onSaved()
         }
+    }
+
+    // The dialog that owns this ViewModel is just a boolean flag toggling visibility, not a nav
+    // destination — closing and reopening it does not recreate the ViewModel, so without this the
+    // next "Create Custom Deck" open would still show the just-saved deck's title, words, etc.
+    private fun resetFields() {
+        title = ""
+        category = Category.MOVIES
+        selectedCustomCategory = null
+        description = ""
+        howToPlay = ""
+        wordInput = ""
+        words = emptyList()
     }
 
     private fun mergeWords(existing: List<String>, input: String): List<String> {

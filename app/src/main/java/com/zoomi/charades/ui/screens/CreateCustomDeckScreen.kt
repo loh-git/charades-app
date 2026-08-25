@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -42,11 +44,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.zoomi.charades.data.Category
 import com.zoomi.charades.ui.components.CategoryPill
 import com.zoomi.charades.ui.components.ModalCloseButton
+import com.zoomi.charades.ui.components.ModalScaffold
+import com.zoomi.charades.ui.components.responsiveModalHeight
+import com.zoomi.charades.ui.components.NeutralButton
+import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.iconVector
 import com.zoomi.charades.ui.viewmodel.CreateCustomDeckViewModel
 
@@ -70,11 +74,12 @@ fun CreateCustomDeckScreen(
     viewModel: CreateCustomDeckViewModel,
     onClose: () -> Unit,
 ) {
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    ModalScaffold(onDismissRequest = onClose) {
         Column(
             modifier = Modifier
-                .widthIn(max = 576.dp)
+                .widthIn(max = 560.dp)
                 .fillMaxWidth()
+                .height(responsiveModalHeight(740.dp))
                 .padding(horizontal = 16.dp)
                 .background(ModalSurface, RoundedCornerShape(24.dp))
                 .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
@@ -144,26 +149,23 @@ fun CreateCustomDeckScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Button(
+                NeutralButton(
+                    text = "Cancel",
                     onClick = onClose,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BorderSlate800, contentColor = Color.White),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
-                ) {
-                    Text("Cancel", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                }
+                    modifier = Modifier.weight(1f).height(48.dp),
+                )
                 Button(
-                    onClick = { viewModel.save(onSaved = onClose) },
+                    onClick = hapticClick { viewModel.save(onSaved = onClose) },
                     enabled = viewModel.isValid,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Amber500,
                         contentColor = Slate950,
                         disabledContainerColor = Amber500.copy(alpha = 0.4f),
                         disabledContentColor = Slate950.copy(alpha = 0.6f),
                     ),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
                 ) {
                     Text("Save Deck", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                 }
@@ -263,10 +265,11 @@ private fun CategorySelector(
                 )
             }
             CategoryPill(
-                icon = null,
-                label = "+ New",
+                icon = Icons.Filled.Add,
+                label = "New",
                 selected = false,
                 onClick = { showNewCategoryInput = !showNewCategoryInput },
+                iconAtEnd = true,
             )
         }
 
@@ -291,13 +294,11 @@ private fun CategorySelector(
                     onSubmit = submitNewCategory,
                 )
                 Button(
-                    onClick = submitNewCategory,
+                    onClick = hapticClick(submitNewCategory),
                     modifier = Modifier.height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BorderSlate800, contentColor = Color.White),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
                 ) {
-                    Text("Add", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Add")
                 }
             }
         }
@@ -324,13 +325,11 @@ private fun WordListBuilder(
                 onSubmit = onAddWord,
             )
             Button(
-                onClick = onAddWord,
+                onClick = hapticClick(onAddWord),
                 modifier = Modifier.height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BorderSlate800, contentColor = Color.White),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
             ) {
-                Text("Add", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("Add")
             }
         }
 
@@ -379,7 +378,7 @@ private fun WordChip(word: String, onRemove: () -> Unit) {
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = TextSlate400,
-            modifier = Modifier.clickable(onClick = onRemove),
+            modifier = Modifier.clickable(onClick = hapticClick(onRemove)),
         )
     }
 }

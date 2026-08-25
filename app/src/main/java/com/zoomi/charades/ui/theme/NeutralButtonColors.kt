@@ -13,6 +13,7 @@ object NeutralButtonColors {
     // Shuffle. Anything that reads as "a secondary button you can tap", as opposed to the
     // amber primary CTA or an unselected choice pill.
     val actionBackground = Color(0xFF182234)
+    val actionBackgroundPressed = Color(0xFF2E3F58)
     val actionText = Color(0xFFCAD5E2)
 
     // Unselected state of any multi-choice pill row (round duration, tilt sensitivity, mode,
@@ -26,5 +27,6 @@ object NeutralButtonColors {
     // Modal header close (X) icon buttons — filled with the modal's own surface colour so the
     // tap target is invisible until interacted with, matching Sunset Arcade's modal surface.
     val closeIconBackground = Color(0xFF0F172A)
+    val closeIconBackgroundPressed = Color(0xFF243044)
     val closeIconTint = Color(0xFF94A3B8)
 }

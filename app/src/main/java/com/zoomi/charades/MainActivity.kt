@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -23,7 +25,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.zoomi.charades.ads.AdMobAdProvider
@@ -38,19 +39,13 @@ import com.zoomi.charades.data.GameSettings
 import com.zoomi.charades.data.SettingsRepository
 import com.zoomi.charades.data.StatsRepository
 import com.zoomi.charades.data.appDataStore
-import com.zoomi.charades.ui.screens.CreateCustomDeckScreen
-import com.zoomi.charades.ui.screens.DeckDetailScreen
 import com.zoomi.charades.ui.screens.DeckListScreen
 import com.zoomi.charades.ui.screens.GameScreen
 import com.zoomi.charades.ui.screens.LoadingScreen
-import com.zoomi.charades.ui.screens.SettingsScreen
-import com.zoomi.charades.ui.screens.StatsScreen
 import com.zoomi.charades.ui.screens.TeamSetupScreen
 import com.zoomi.charades.ui.theme.CharadesTheme
-import com.zoomi.charades.ui.viewmodel.CreateCustomDeckViewModel
+import com.zoomi.charades.ui.theme.LocalHapticsEnabled
 import com.zoomi.charades.ui.viewmodel.DeckListViewModel
-import com.zoomi.charades.ui.viewmodel.SettingsViewModel
-import com.zoomi.charades.ui.viewmodel.StatsViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -60,10 +55,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            hide(WindowInsetsCompat.Type.systemBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
 
         val customDeckRepository = CustomDeckRepository(applicationContext.appDataStore)
         val deckRepository = DeckRepository(customDeckRepository)
@@ -81,17 +72,28 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val settings by settingsRepository.settings.collectAsState(initial = GameSettings())
-            CharadesTheme(theme = settings.theme) {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    CharadesNavHost(
-                        deckRepository,
-                        settingsRepository,
-                        statsRepository,
-                        favoritesRepository,
-                        customCategoryRepository,
-                        adsRepository,
-                        adProvider,
-                    )
+            LaunchedEffect(settings.fullscreenModeEnabled) {
+                val controller = WindowInsetsControllerCompat(window, window.decorView)
+                if (settings.fullscreenModeEnabled) {
+                    controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    controller.hide(WindowInsetsCompat.Type.systemBars())
+                } else {
+                    controller.show(WindowInsetsCompat.Type.systemBars())
+                }
+            }
+            CompositionLocalProvider(LocalHapticsEnabled provides settings.hapticsEnabled) {
+                CharadesTheme(theme = settings.theme) {
+                    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        CharadesNavHost(
+                            deckRepository,
+                            settingsRepository,
+                            statsRepository,
+                            favoritesRepository,
+                            customCategoryRepository,
+                            adsRepository,
+                            adProvider,
+                        )
+                    }
                 }
             }
         }
@@ -135,45 +137,13 @@ private fun CharadesNavHost(
                 viewModel(factory = DeckListViewModel.Factory(deckRepository, favoritesRepository))
             DeckListScreen(
                 viewModel = viewModel,
-                onSelectDeck = { deck -> navController.navigate("deckDetail/${deck.id}") },
-                onOpenSettings = { navController.navigate("settings") },
-                onOpenStats = { navController.navigate("stats") },
-                onCreateCustomDeck = { navController.navigate("createCustomDeck") },
+                deckRepository = deckRepository,
+                customCategoryRepository = customCategoryRepository,
+                settingsRepository = settingsRepository,
+                statsRepository = statsRepository,
+                onStartGame = { deck, timerSeconds -> navController.navigate("game/${deck.id}/$timerSeconds") },
+                onStartPartyGame = { deck, timerSeconds -> navController.navigate("teamSetup/${deck.id}/$timerSeconds") },
             )
-        }
-        dialog("createCustomDeck") {
-            val viewModel: CreateCustomDeckViewModel =
-                viewModel(factory = CreateCustomDeckViewModel.Factory(deckRepository, customCategoryRepository))
-            CreateCustomDeckScreen(viewModel = viewModel, onClose = { navController.popBackStack() })
-        }
-        dialog("settings") {
-            val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(settingsRepository))
-            SettingsScreen(viewModel = viewModel, onClose = { navController.popBackStack() })
-        }
-        dialog("stats") {
-            val viewModel: StatsViewModel = viewModel(factory = StatsViewModel.Factory(statsRepository))
-            StatsScreen(viewModel = viewModel, onClose = { navController.popBackStack() })
-        }
-        dialog(
-            route = "deckDetail/{deckId}",
-            arguments = listOf(navArgument("deckId") { type = NavType.StringType }),
-        ) { backStackEntry ->
-            val deck by deckRepository.deckById(backStackEntry.deckIdArg()).collectAsState(initial = null)
-            val settings by settingsRepository.settings.collectAsState(initial = GameSettings())
-            deck?.let {
-                DeckDetailScreen(
-                    deck = it,
-                    defaultTimerSeconds = settings.defaultRoundDurationSeconds,
-                    onStart = { timerSeconds, isPartyMode ->
-                        if (isPartyMode) {
-                            navController.navigate("teamSetup/${it.id}/$timerSeconds")
-                        } else {
-                            navController.navigate("game/${it.id}/$timerSeconds")
-                        }
-                    },
-                    onBack = { navController.popBackStack() },
-                )
-            }
         }
         composable(
             route = "teamSetup/{deckId}/{timerSeconds}",

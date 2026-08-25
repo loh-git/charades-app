@@ -26,12 +26,14 @@ enum class AppTheme(val label: String, val description: String) {
 }
 
 data class GameSettings(
-    val defaultRoundDurationSeconds: Int = 60,
+    val defaultRoundDurationSeconds: Int = 30,
     val tiltSensitivity: TiltSensitivity = TiltSensitivity.MEDIUM,
     val soundEnabled: Boolean = true,
     val touchFallbackEnabled: Boolean = false,
     val invertTilt: Boolean = false,
     val theme: AppTheme = AppTheme.DEFAULT,
+    val hapticsEnabled: Boolean = true,
+    val fullscreenModeEnabled: Boolean = true,
 )
 
 private object Keys {
@@ -41,13 +43,15 @@ private object Keys {
     val TOUCH_FALLBACK = booleanPreferencesKey("touch_fallback_enabled")
     val INVERT_TILT = booleanPreferencesKey("invert_tilt")
     val THEME = stringPreferencesKey("app_theme")
+    val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
+    val FULLSCREEN_MODE_ENABLED = booleanPreferencesKey("fullscreen_mode_enabled")
 }
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     val settings: Flow<GameSettings> = dataStore.data.map { prefs ->
         GameSettings(
-            defaultRoundDurationSeconds = prefs[Keys.ROUND_DURATION] ?: 60,
+            defaultRoundDurationSeconds = prefs[Keys.ROUND_DURATION] ?: 30,
             tiltSensitivity = prefs[Keys.TILT_SENSITIVITY]
                 ?.let { name -> runCatching { TiltSensitivity.valueOf(name) }.getOrNull() }
                 ?: TiltSensitivity.MEDIUM,
@@ -57,6 +61,8 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             theme = prefs[Keys.THEME]
                 ?.let { name -> runCatching { AppTheme.valueOf(name) }.getOrNull() }
                 ?: AppTheme.DEFAULT,
+            hapticsEnabled = prefs[Keys.HAPTICS_ENABLED] ?: true,
+            fullscreenModeEnabled = prefs[Keys.FULLSCREEN_MODE_ENABLED] ?: true,
         )
     }
 
@@ -82,5 +88,13 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setTheme(theme: AppTheme) {
         dataStore.edit { it[Keys.THEME] = theme.name }
+    }
+
+    suspend fun setHapticsEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.HAPTICS_ENABLED] = enabled }
+    }
+
+    suspend fun setFullscreenModeEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.FULLSCREEN_MODE_ENABLED] = enabled }
     }
 }

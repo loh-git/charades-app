@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,12 +41,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.zoomi.charades.data.Deck
+import com.zoomi.charades.ui.components.ModalScaffold
+import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.OptionPill
-import com.zoomi.charades.ui.theme.iconVector
+import com.zoomi.charades.ui.components.hapticClick
 
 private val TIMER_OPTIONS = listOf(30, 60, 90)
 
@@ -59,53 +62,23 @@ fun DeckDetailScreen(
     }
     var isPartyMode by remember(deck.id) { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onBack, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    ModalScaffold(onDismissRequest = onBack) {
     Column(
         modifier = Modifier
-            .widthIn(max = 480.dp)
+            .widthIn(max = 570.dp)
             .fillMaxWidth()
+            .height(responsiveModalHeight(760.dp))
             .padding(horizontal = 16.dp)
             .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
-            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(24.dp))
+            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(24.dp)),
+    ) {
+    Column(
+        modifier = Modifier
+            .weight(1f)
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
-            modifier = Modifier
-                .padding(top = 12.dp)
-                .size(80.dp)
-                .background(Color(0xFF3E2F20), RoundedCornerShape(24.dp))
-                .border(1.dp, Color(0xFF6C4818), RoundedCornerShape(24.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (deck.isCustom) {
-                Text(text = deck.icon, fontSize = 34.sp)
-            } else {
-                Icon(
-                    imageVector = deck.category.iconVector,
-                    contentDescription = deck.category.displayName,
-                    tint = Color(0xFFFFB900),
-                    modifier = Modifier.size(36.dp),
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .background(Color(0xFF3E2F20), RoundedCornerShape(50))
-                .border(1.dp, Color(0xFF6C4818), RoundedCornerShape(50))
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-        ) {
-            Text(
-                text = "${(deck.customCategoryName ?: deck.category.displayName).uppercase()} • ${deck.words.size} CARDS",
-                style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFFFFB900),
-                fontWeight = FontWeight.Bold,
-            )
-        }
-
         Text(
             text = deck.title,
             style = MaterialTheme.typography.headlineMedium,
@@ -117,14 +90,14 @@ fun DeckDetailScreen(
             text = deck.shortDescription,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Left,
             modifier = Modifier.padding(top = 8.dp),
         )
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 20.dp)
+                .padding(top = 40.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                 .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                 .padding(16.dp),
@@ -172,7 +145,7 @@ fun DeckDetailScreen(
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
             color = Color(0xFF94A3B8),
-            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
         )
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -214,8 +187,9 @@ fun DeckDetailScreen(
             )
         }
 
+    }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 48.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             NeutralButton(
@@ -224,11 +198,13 @@ fun DeckDetailScreen(
                 modifier = Modifier.weight(1f).height(48.dp),
             )
             Button(
-                onClick = { onStart(selectedTimer, isPartyMode) },
+                onClick = hapticClick { onStart(selectedTimer, isPartyMode) },
                 modifier = Modifier.weight(2f).height(48.dp),
                 shape = RoundedCornerShape(12.dp),
             ) {
-                Text("▶  Start Game")
+                Text("Start Game")
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
             }
         }
     }
