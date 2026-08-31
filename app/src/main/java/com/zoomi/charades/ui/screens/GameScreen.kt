@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -298,8 +299,8 @@ private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
                 .widthIn(max = 320.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp)
-                .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
-                .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(24.dp))
+                .background(LocalExtendedColors.current.modalSurface, RoundedCornerShape(24.dp))
+                .border(1.dp, LocalExtendedColors.current.modalBorder, RoundedCornerShape(24.dp))
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -307,7 +308,7 @@ private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
                 text = "PAUSED",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black,
-                color = Color(0xFFF8FAFC),
+                color = LocalExtendedColors.current.textStrong,
             )
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
@@ -322,7 +323,10 @@ private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
                     onClick = hapticClick(onResume),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B), contentColor = Color(0xFF020617)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
                     contentPadding = PaddingValues(vertical = 10.dp),
                 ) {
                     Text("Resume", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
@@ -375,11 +379,17 @@ private fun CountdownContent(value: Int, invertTilt: Boolean, deckTitle: String)
             )
         }
 
+        val extended = LocalExtendedColors.current
         Text(
             text = value.toString(),
             style = MaterialTheme.typography.displayLarge.copy(
-                brush = LocalExtendedColors.current.accentGradient,
+                brush = extended.accentGradient,
                 fontSize = 96.sp,
+                shadow = if (extended.glowColor != Color.Transparent) {
+                    Shadow(color = extended.glowColor, blurRadius = 40f)
+                } else {
+                    null
+                },
             ),
             fontWeight = FontWeight.Bold,
             modifier = Modifier.graphicsLayer {
@@ -443,10 +453,12 @@ private fun PlayingContent(
                 modifier = Modifier.weight(1f),
             )
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                val extended = LocalExtendedColors.current
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color(0xFF1E293B), RoundedCornerShape(12.dp))
+                        .background(extended.chromeSurface, RoundedCornerShape(12.dp))
+                        .then(if (extended.chromeBorder != Color.Transparent) Modifier.border(1.dp, extended.chromeBorder, RoundedCornerShape(12.dp)) else Modifier)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -454,7 +466,7 @@ private fun PlayingContent(
                         ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(imageVector = Icons.Filled.Pause, contentDescription = "Pause", tint = Color.White)
+                    Icon(imageVector = Icons.Filled.Pause, contentDescription = "Pause", tint = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

@@ -37,6 +37,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -68,21 +69,22 @@ import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.OptionPill
 import com.zoomi.charades.ui.components.hapticClick
+import com.zoomi.charades.ui.theme.LocalExtendedColors
 import com.zoomi.charades.ui.theme.previewAccent
 import com.zoomi.charades.ui.theme.previewBackground
 import com.zoomi.charades.ui.viewmodel.SettingsViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-private val ModalSurface = Color(0xFF0F172A) // slate-900, opaque
-private val BorderSlate800 = Color(0xFF1E293B)
-private val AmberBadgeBg = Color(0x33F59E0B) // amber-500/20
-private val Amber400 = Color(0xFFFBBF24)
-private val Amber500 = Color(0xFFF59E0B)
-private val Slate700 = Color(0xFF334155)
-private val TextSlate100 = Color(0xFFF8FAFC)
-private val TextSlate400 = Color(0xFF94A3B8)
-private val WhiteBorder10 = Color(0x1AFFFFFF) // white/10
+private val ModalSurface: Color @Composable get() = LocalExtendedColors.current.modalSurface
+private val BorderSlate800: Color @Composable get() = LocalExtendedColors.current.modalBorder
+private val AmberBadgeBg: Color @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+private val Amber400: Color @Composable get() = LocalExtendedColors.current.accentBright
+private val Amber500: Color @Composable get() = MaterialTheme.colorScheme.primary
+private val Slate700: Color @Composable get() = MaterialTheme.colorScheme.outline
+private val TextSlate100: Color @Composable get() = LocalExtendedColors.current.textStrong
+private val TextSlate400: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+private val WhiteBorder10: Color @Composable get() = LocalExtendedColors.current.dividerFaint
 
 private val ROUND_DURATION_OPTIONS = listOf(30, 60, 90)
 private const val PRIVACY_POLICY_URL = "https://loh-git.github.io/zoomi-privacy-policy/"
@@ -187,7 +189,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
             )
             ToggleRow(
                 title = "Fullscreen Mode",
-                subtitle = "Hide the status bar and system buttons",
+                subtitle = "Hide status bar and system buttons",
                 checked = settings.fullscreenModeEnabled,
                 onCheckedChange = viewModel::setFullscreenModeEnabled,
             )
@@ -282,8 +284,8 @@ private fun SubmitFeedbackDialog(onClose: () -> Unit) {
                 onValueChange = { message = it },
                 placeholder = { Text("What's on your mind?", color = TextSlate400, fontSize = 14.sp) },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xCC1E293B),
-                    unfocusedContainerColor = Color(0xCC1E293B),
+                    focusedContainerColor = LocalExtendedColors.current.inputSurface,
+                    unfocusedContainerColor = LocalExtendedColors.current.inputSurface,
                     focusedBorderColor = Amber500,
                     unfocusedBorderColor = Slate700,
                     cursorColor = Amber500,
@@ -362,7 +364,7 @@ private fun ThemeDropdownSelector(selected: AppTheme, onSelect: (AppTheme) -> Un
             modifier = Modifier
                 .fillMaxWidth()
                 .onGloballyPositioned { triggerHeightPx = it.size.height }
-                .background(BorderSlate800, shape)
+                .background(LocalExtendedColors.current.dropdownSurface, shape)
                 .border(1.dp, Slate700, shape)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -386,7 +388,7 @@ private fun ThemeDropdownSelector(selected: AppTheme, onSelect: (AppTheme) -> Un
                 Surface(
                     modifier = Modifier.width(maxWidth),
                     shape = shape,
-                    color = BorderSlate800,
+                    color = LocalExtendedColors.current.dropdownSurface,
                     border = BorderStroke(1.dp, Slate700),
                     tonalElevation = 3.dp,
                     shadowElevation = 3.dp,
@@ -418,7 +420,7 @@ private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xCC1E293B), RoundedCornerShape(16.dp)) // slate-800/80
+            .background(LocalExtendedColors.current.inputSurface, RoundedCornerShape(16.dp))
             .border(1.dp, Amber500.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -509,7 +511,7 @@ private fun ToggleSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
             modifier = Modifier
                 .offset(x = thumbOffset, y = 4.dp)
                 .size(20.dp)
-                .background(Color.White, CircleShape),
+                .background(LocalExtendedColors.current.toggleThumb, CircleShape),
         )
     }
 }

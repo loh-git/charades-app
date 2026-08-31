@@ -15,13 +15,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.themedGlow
 
 @Composable
 fun ScreenHeaderIcon(icon: String, modifier: Modifier = Modifier, size: Dp = 44.dp) {
+    val extended = LocalExtendedColors.current
+    val shape = RoundedCornerShape(14.dp)
     Box(
         modifier = modifier
             .size(size)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f), RoundedCornerShape(14.dp)),
+            .themedGlow(extended, shape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f), shape),
         contentAlignment = Alignment.Center,
     ) {
         Text(text = icon, fontSize = (size.value * 0.5f).sp)
@@ -30,10 +35,12 @@ fun ScreenHeaderIcon(icon: String, modifier: Modifier = Modifier, size: Dp = 44.
 
 @Composable
 fun ScreenHeaderIcon(icon: ImageVector, contentDescription: String? = null, modifier: Modifier = Modifier, size: Dp = 44.dp) {
+    val extended = LocalExtendedColors.current
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier = modifier
             .size(size)
+            .themedGlow(extended, shape)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), shape)
             .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), shape),
         contentAlignment = Alignment.Center,

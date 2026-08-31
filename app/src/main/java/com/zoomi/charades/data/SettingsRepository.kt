@@ -17,7 +17,7 @@ enum class TiltSensitivity(val triggerAngleDegrees: Float, val label: String) {
 
 enum class AppTheme(val label: String, val description: String) {
     DEFAULT("Sunset Arcade", "Warm dark arcade aesthetic with golden amber highlights"),
-    LIGHT("Matrix Terminal", "Clean bright layout for daytime play"),
+    MATRIX_TERMINAL("Matrix Terminal", "Black CRT terminal styling with glowing phosphor green"),
     POP_ART("Pop Art", "Bold primary colours with comic-book energy"),
     TEST("Cyberpunk Neon", "Vivid experimental styling with bigger icons and playful motion"),
     // Not yet visually distinct — reuses the Light theme's colour scheme as a starting point

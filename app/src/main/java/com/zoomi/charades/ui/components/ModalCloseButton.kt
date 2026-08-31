@@ -19,7 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.zoomi.charades.ui.theme.NeutralButtonColors
+import com.zoomi.charades.ui.theme.LocalExtendedColors
 
 /**
  * The app's one modal-header close (X) button — Settings, Stats, Create Custom Deck. Uses a
@@ -28,12 +28,13 @@ import com.zoomi.charades.ui.theme.NeutralButtonColors
  */
 @Composable
 fun ModalCloseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val extended = LocalExtendedColors.current
     var flashTrigger by remember { mutableIntStateOf(0) }
-    val background = remember { Animatable(NeutralButtonColors.closeIconBackground) }
-    LaunchedEffect(flashTrigger) {
+    val background = remember(extended.closeIconBackground) { Animatable(extended.closeIconBackground) }
+    LaunchedEffect(flashTrigger, extended) {
         if (flashTrigger > 0) {
-            background.snapTo(NeutralButtonColors.closeIconBackgroundPressed)
-            background.animateTo(NeutralButtonColors.closeIconBackground, animationSpec = tween(250))
+            background.snapTo(extended.closeIconBackgroundPressed)
+            background.animateTo(extended.closeIconBackground, animationSpec = tween(250))
         }
     }
     val onClickWithHaptic = hapticClick(onClick)
@@ -50,6 +51,6 @@ fun ModalCloseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             )
             .padding(8.dp),
     ) {
-        Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = NeutralButtonColors.closeIconTint)
+        Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = extended.closeIconTint)
     }
 }

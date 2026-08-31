@@ -47,6 +47,7 @@ import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.OptionPill
 import com.zoomi.charades.ui.components.hapticClick
+import com.zoomi.charades.ui.theme.LocalExtendedColors
 
 private val TIMER_OPTIONS = listOf(30, 60, 90)
 
@@ -69,8 +70,8 @@ fun DeckDetailScreen(
             .fillMaxWidth()
             .height(responsiveModalHeight(760.dp))
             .padding(horizontal = 16.dp)
-            .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
-            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(24.dp)),
+            .background(LocalExtendedColors.current.modalSurface, RoundedCornerShape(24.dp))
+            .border(1.dp, LocalExtendedColors.current.modalBorder, RoundedCornerShape(24.dp)),
     ) {
     Column(
         modifier = Modifier
@@ -106,7 +107,7 @@ fun DeckDetailScreen(
                 Icon(
                     imageVector = Icons.Filled.Info,
                     contentDescription = null,
-                    tint = Color(0xFFFFB900),
+                    tint = LocalExtendedColors.current.iconAccentGold,
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
@@ -144,7 +145,7 @@ fun DeckDetailScreen(
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
-            color = Color(0xFF94A3B8),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
         )
         Row(
@@ -166,7 +167,7 @@ fun DeckDetailScreen(
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
-            color = Color(0xFF94A3B8),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
         )
         Row(

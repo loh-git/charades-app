@@ -69,6 +69,21 @@ val TestBorderGold = Color(0xFFFFC700)
 
 val TestAccentGradient = Brush.horizontalGradient(listOf(TestBlue, TestPurple))
 
+// Matrix Terminal theme — a black CRT-terminal look with neon phosphor green, per an explicit
+// design spec (Tailwind green-400/500/600/950 tokens, monospace type, glowing borders). Values
+// taken directly from that spec rather than eyeballed.
+val MatrixBackground = Color(0xFF000000)
+val MatrixBrightGreen = Color(0xFF4ADE80) // green-400 — headings, active/bright text and icons
+val MatrixPrimaryGreen = Color(0xFF22C55E) // green-500 — solid buttons, active tab fills
+val MatrixMutedGreen = Color(0xFF16A34A) // green-600 — secondary text, muted/inactive items
+val MatrixPlaceholderGreen = Color(0xFF166534) // green-800 — input placeholder text
+val MatrixContainerGreen = Color(0x99052E16) // green-950 @ ~60% — deep terminal-green containers/badges
+val MatrixBorderGreen = Color(0x6622C55E) // green-500 @ 40% — standard border strength
+val MatrixBorderGreenDim = Color(0x4D22C55E) // green-500 @ 30% — dimmer border (unselected tabs)
+val MatrixGlow = Color(0xFF00FF66) // the spec's literal neon glow color, used only for shadow/glow effects
+
+val MatrixAccentGradient = Brush.horizontalGradient(listOf(MatrixPrimaryGreen, MatrixBrightGreen))
+
 private val MoviesSwatch = OrangeAccent
 private val AnimalsSwatch = Color(0xFF22C55E)
 private val MusicSwatch = Color(0xFFEC4899)
@@ -91,7 +106,7 @@ val Category.swatchColor: Color
 val AppTheme.previewBackground: Color
     get() = when (this) {
         AppTheme.DEFAULT -> SurfaceDark
-        AppTheme.LIGHT -> BackgroundLight
+        AppTheme.MATRIX_TERMINAL -> MatrixBackground
         AppTheme.POP_ART -> BackgroundPopArt
         AppTheme.TEST -> BackgroundTest
         AppTheme.STUDIO_MINIMALIST -> BackgroundLight
@@ -100,7 +115,7 @@ val AppTheme.previewBackground: Color
 val AppTheme.previewAccent: Color
     get() = when (this) {
         AppTheme.DEFAULT -> OrangeAccent
-        AppTheme.LIGHT -> OrangeAccent
+        AppTheme.MATRIX_TERMINAL -> MatrixPrimaryGreen
         AppTheme.POP_ART -> PopArtRed
         AppTheme.TEST -> TestBlue
         AppTheme.STUDIO_MINIMALIST -> OrangeAccent

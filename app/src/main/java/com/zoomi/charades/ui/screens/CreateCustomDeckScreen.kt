@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -51,23 +52,24 @@ import com.zoomi.charades.ui.components.ModalScaffold
 import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.hapticClick
+import com.zoomi.charades.ui.theme.LocalExtendedColors
 import com.zoomi.charades.ui.theme.iconVector
 import com.zoomi.charades.ui.viewmodel.CreateCustomDeckViewModel
 
-private val ModalSurface = Color(0xFF0F172A) // slate-900, opaque
-private val BorderSlate800 = Color(0xFF1E293B)
-private val InputSurface = Color(0xCC1E293B) // slate-800/80
-private val InputBorder = Color(0xFF334155) // slate-700
-private val Amber300 = Color(0xFFFCD34D)
-private val Amber500 = Color(0xFFF59E0B)
-private val AmberChipBg = Color(0x33F59E0B) // amber-500/20
-private val AmberChipBorder = Color(0x4DF59E0B) // amber-500/30
-private val Slate950 = Color(0xFF020617)
-private val Slate500 = Color(0xFF64748B)
-private val TextSlate100 = Color(0xFFF8FAFC)
-private val TextSlate400 = Color(0xFF94A3B8)
-private val WhiteBorder10 = Color(0x1AFFFFFF)
-private val BlackBg20 = Color(0x33000000)
+private val ModalSurface: Color @Composable get() = LocalExtendedColors.current.modalSurface
+private val BorderSlate800: Color @Composable get() = LocalExtendedColors.current.modalBorder
+private val InputSurface: Color @Composable get() = LocalExtendedColors.current.inputSurface
+private val InputBorder: Color @Composable get() = MaterialTheme.colorScheme.outline
+private val Amber300: Color @Composable get() = LocalExtendedColors.current.accentBright
+private val Amber500: Color @Composable get() = MaterialTheme.colorScheme.primary
+private val AmberChipBg: Color @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+private val AmberChipBorder: Color @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+private val Slate950: Color @Composable get() = MaterialTheme.colorScheme.onPrimary
+private val Slate500: Color @Composable get() = LocalExtendedColors.current.inputPlaceholder
+private val TextSlate100: Color @Composable get() = LocalExtendedColors.current.textStrong
+private val TextSlate400: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+private val WhiteBorder10: Color @Composable get() = LocalExtendedColors.current.dividerFaint
+private val BlackBg20: Color @Composable get() = LocalExtendedColors.current.recessedContainerBackground
 
 @Composable
 fun CreateCustomDeckScreen(
@@ -213,7 +215,7 @@ private fun StyledTextField(
         onValueChange = onValueChange,
         placeholder = { Text(placeholder, color = Slate500, fontSize = 14.sp) },
         singleLine = true,
-        textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White),
+        textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = InputSurface,
@@ -221,8 +223,8 @@ private fun StyledTextField(
             focusedBorderColor = Amber500,
             unfocusedBorderColor = InputBorder,
             cursorColor = Amber500,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
         ),
         keyboardOptions = if (onSubmit != null) KeyboardOptions(imeAction = ImeAction.Done) else KeyboardOptions.Default,
         keyboardActions = KeyboardActions(onDone = { onSubmit?.invoke() }),

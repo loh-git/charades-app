@@ -134,7 +134,7 @@ private fun CharadesNavHost(
         }
         composable("deckList") {
             val viewModel: DeckListViewModel =
-                viewModel(factory = DeckListViewModel.Factory(deckRepository, favoritesRepository))
+                viewModel(factory = DeckListViewModel.Factory(deckRepository, favoritesRepository, customCategoryRepository))
             DeckListScreen(
                 viewModel = viewModel,
                 deckRepository = deckRepository,

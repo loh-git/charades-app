@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.zoomi.charades.ui.theme.LocalExtendedColors
-import com.zoomi.charades.ui.theme.NeutralButtonColors
+import com.zoomi.charades.ui.theme.themedGlow
 
 @Composable
 fun CategoryPill(
@@ -32,14 +32,15 @@ fun CategoryPill(
 ) {
     val extended = LocalExtendedColors.current
     val shape = RoundedCornerShape(extended.cardCornerRadius)
-    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else NeutralButtonColors.pillText
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else extended.pillText
     Row(
         modifier = modifier
+            .then(if (selected) Modifier.themedGlow(extended, shape) else Modifier)
             .background(
-                if (selected) MaterialTheme.colorScheme.primary else NeutralButtonColors.pillBackground,
+                if (selected) MaterialTheme.colorScheme.primary else extended.pillBackground,
                 shape,
             )
-            .then(if (!selected) Modifier.border(1.dp, NeutralButtonColors.pillBorder, shape) else Modifier)
+            .then(if (!selected) Modifier.border(1.dp, extended.pillBorder, shape) else Modifier)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,

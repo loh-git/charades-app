@@ -3,6 +3,7 @@ package com.zoomi.charades.ui.components
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -27,12 +28,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zoomi.charades.ui.theme.NeutralButtonColors
+import com.zoomi.charades.ui.theme.LocalExtendedColors
 
 /**
  * The app's one neutral/secondary button style — Cancel, Close, Exit, Back, All Decks, Add,
- * Shuffle, etc. See [NeutralButtonColors] for why this exists as a single shared component
- * instead of each screen styling its own "neutral" button.
+ * Shuffle, etc. Colors come from [com.zoomi.charades.ui.theme.ExtendedColors]'s neutral-button
+ * tokens, so this exists as a single shared component instead of each screen styling its own
+ * "neutral" button.
  *
  * Built on a plain clickable Row rather than Material3's Button: this Compose version's Button
  * always draws its own ripple() internally regardless of LocalIndication, and that ripple's
@@ -47,18 +49,27 @@ fun NeutralButton(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
 ) {
+    val extended = LocalExtendedColors.current
     var flashTrigger by remember { mutableIntStateOf(0) }
-    val background = remember { Animatable(NeutralButtonColors.actionBackground) }
-    LaunchedEffect(flashTrigger) {
+    val background = remember(extended.neutralButtonBackground) { Animatable(extended.neutralButtonBackground) }
+    LaunchedEffect(flashTrigger, extended) {
         if (flashTrigger > 0) {
-            background.snapTo(NeutralButtonColors.actionBackgroundPressed)
-            background.animateTo(NeutralButtonColors.actionBackground, animationSpec = tween(250))
+            background.snapTo(extended.neutralButtonBackgroundPressed)
+            background.animateTo(extended.neutralButtonBackground, animationSpec = tween(250))
         }
     }
     val onClickWithHaptic = hapticClick(onClick)
+    val shape = RoundedCornerShape(12.dp)
     Row(
         modifier = modifier
-            .background(background.value, RoundedCornerShape(12.dp))
+            .background(background.value, shape)
+            .then(
+                if (extended.neutralButtonBorderWidth > 0.dp) {
+                    Modifier.border(extended.neutralButtonBorderWidth, extended.neutralButtonBorderColor, shape)
+                } else {
+                    Modifier
+                },
+            )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -72,9 +83,9 @@ fun NeutralButton(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
-            Icon(imageVector = icon, contentDescription = null, tint = NeutralButtonColors.actionText, modifier = Modifier.size(18.dp))
+            Icon(imageVector = icon, contentDescription = null, tint = extended.neutralButtonText, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
         }
-        Text(text, color = NeutralButtonColors.actionText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(text, color = extended.neutralButtonText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }

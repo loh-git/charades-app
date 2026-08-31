@@ -22,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,19 +43,18 @@ import com.zoomi.charades.ui.components.ModalScaffold
 import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.hapticClick
-import com.zoomi.charades.ui.theme.NeutralButtonColors
+import com.zoomi.charades.ui.theme.LocalExtendedColors
 import com.zoomi.charades.ui.viewmodel.StatsViewModel
 
-private val CardSurface = Color(0xFF0F172A) // slate-900, opaque
-private val TileSurface = Color(0xE61E293B) // slate-800/90
-private val MetricTileSurface = Color(0x991E293B) // slate-800/60
-private val BorderSlate800 = Color(0xFF1E293B)
-private val BorderSlate700 = Color(0xFF334155)
-private val TextSlate100 = Color(0xFFF1F5F9)
-private val TextSlate300 = Color(0xFFCBD5E1)
-private val TextSlate400 = Color(0xFF94A3B8)
-private val Amber400 = Color(0xFFFBBF24)
-private val Amber500 = Color(0xFFF59E0B)
+private val CardSurface: Color @Composable get() = LocalExtendedColors.current.modalSurface
+private val TileSurface: Color @Composable get() = LocalExtendedColors.current.let { it.cardBackgroundOverride ?: it.modalBorder.copy(alpha = 0.9f) }
+private val MetricTileSurface: Color @Composable get() = LocalExtendedColors.current.let { it.cardBackgroundOverride ?: it.modalBorder.copy(alpha = 0.6f) }
+private val BorderSlate800: Color @Composable get() = LocalExtendedColors.current.modalBorder
+private val BorderSlate700: Color @Composable get() = MaterialTheme.colorScheme.outline
+private val TextSlate100: Color @Composable get() = MaterialTheme.colorScheme.onSurface
+private val TextSlate400: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+private val Amber400: Color @Composable get() = LocalExtendedColors.current.accentBright
+private val Amber500: Color @Composable get() = MaterialTheme.colorScheme.primary
 private val Rose400 = Color(0xFFFB7185)
 
 // Matches GameScreen's round-feedback flash colors exactly, so these tiles read as the same
@@ -144,7 +144,7 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
                 modifier = Modifier
                     .padding(top = 24.dp)
                     .fillMaxWidth()
-                    .background(Color.White.copy(alpha = 0.1f))
+                    .background(LocalExtendedColors.current.dividerFaint)
                     .height(1.dp),
             )
 
@@ -186,7 +186,7 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = hapticClick { showResetConfirm = false }) {
-                    Text("Cancel", color = NeutralButtonColors.actionText)
+                    Text("Cancel", color = LocalExtendedColors.current.neutralButtonText)
                 }
             },
         )
@@ -208,7 +208,7 @@ private fun BestScoreCard(stats: GameStats, modifier: Modifier = Modifier) {
             fontSize = 12.sp,
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 1.5.sp,
-            color = TextSlate300,
+            color = TextSlate400,
         )
         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
             Text(
