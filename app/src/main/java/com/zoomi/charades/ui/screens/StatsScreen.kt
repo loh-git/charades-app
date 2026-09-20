@@ -44,6 +44,8 @@ import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
+import com.zoomi.charades.ui.theme.themedGlow
 import com.zoomi.charades.ui.viewmodel.StatsViewModel
 
 private val CardSurface: Color @Composable get() = LocalExtendedColors.current.modalSurface
@@ -67,15 +69,18 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
     val stats by viewModel.stats.collectAsState()
     var showResetConfirm by remember { mutableStateOf(false) }
 
+    val statsModalShape = RoundedCornerShape(24.dp)
     ModalScaffold(onDismissRequest = onClose) {
         Column(
             modifier = Modifier
-                .widthIn(max = 560.dp)
+                .widthIn(max = LocalExtendedColors.current.statsModalMaxWidth)
                 .fillMaxWidth()
                 .height(responsiveModalHeight(590.dp))
                 .padding(horizontal = 16.dp)
-                .background(CardSurface, RoundedCornerShape(24.dp))
-                .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
+                .hardShadow(LocalExtendedColors.current, statsModalShape, large = true)
+                .themedGlow(LocalExtendedColors.current, statsModalShape, color = LocalExtendedColors.current.cardGlowColor, elevation = LocalExtendedColors.current.cardGlowElevation)
+                .background(CardSurface, statsModalShape)
+                .border(LocalExtendedColors.current.modalBorderWidth, BorderSlate800, statsModalShape)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
         ) {
@@ -195,11 +200,15 @@ fun StatsScreen(viewModel: StatsViewModel, onClose: () -> Unit) {
 
 @Composable
 private fun BestScoreCard(stats: GameStats, modifier: Modifier = Modifier) {
+    val extended = LocalExtendedColors.current
+    val shape = RoundedCornerShape(16.dp)
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(TileSurface, RoundedCornerShape(16.dp))
-            .border(1.dp, BorderSlate700, RoundedCornerShape(16.dp))
+            .hardShadow(extended, shape, large = true)
+            .themedGlow(extended, shape, color = extended.cardGlowColor, elevation = extended.cardGlowElevation)
+            .background(TileSurface, shape)
+            .border(extended.modalBorderWidth, BorderSlate700, shape)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -237,11 +246,15 @@ private fun BestScoreCard(stats: GameStats, modifier: Modifier = Modifier) {
 
 @Composable
 private fun MetricTile(label: String, value: String, valueColor: Color, modifier: Modifier = Modifier) {
+    val extended = LocalExtendedColors.current
+    val shape = RoundedCornerShape(16.dp)
     Column(
         modifier = modifier
             .height(100.dp)
-            .background(MetricTileSurface, RoundedCornerShape(16.dp))
-            .border(1.dp, BorderSlate700, RoundedCornerShape(16.dp))
+            .hardShadow(extended, shape, large = false)
+            .themedGlow(extended, shape, color = extended.cardGlowColor, elevation = extended.cardGlowElevation)
+            .background(MetricTileSurface, shape)
+            .border(extended.iconBadgeBorderWidth, BorderSlate700, shape)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

@@ -7,4 +7,5 @@ enum class Category(val displayName: String, val icon: String) {
     ACTIONS("Actions", "🏃"),
     FAMOUS_PEOPLE("Famous People", "🧑"),
     RANDOM_OBJECTS("Random Objects", "📦"),
+    FOOD("Food", "🍔"),
 }

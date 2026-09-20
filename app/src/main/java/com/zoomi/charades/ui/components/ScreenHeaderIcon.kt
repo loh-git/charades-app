@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
 import com.zoomi.charades.ui.theme.themedGlow
 
 @Composable
@@ -40,15 +41,20 @@ fun ScreenHeaderIcon(icon: ImageVector, contentDescription: String? = null, modi
     Box(
         modifier = modifier
             .size(size)
-            .themedGlow(extended, shape)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), shape)
-            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), shape),
+            .themedGlow(extended, shape, color = extended.iconBadgeGlowColor, elevation = extended.iconBadgeGlowElevation)
+            .hardShadow(extended, shape, large = false)
+            .background(extended.headerIconBackground ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), shape)
+            .border(
+                extended.iconBadgeBorderWidth,
+                extended.headerIconBorder ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                shape,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = extended.headerIconTint ?: MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(size * 0.5f),
         )
     }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -78,6 +79,10 @@ import com.zoomi.charades.ui.components.ModalScaffold
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -165,6 +170,12 @@ fun GameScreen(
     LaunchedEffect(state.phase, state.countdownValue) {
         if (state.phase == RoundPhase.COUNTDOWN) {
             feedback.onCountdownTick()
+        }
+    }
+
+    LaunchedEffect(state.phase, state.timeRemaining) {
+        if (state.phase == RoundPhase.PLAYING && state.timeRemaining in 1..3) {
+            feedback.onFinalSecondsTick()
         }
     }
 
@@ -293,14 +304,19 @@ fun GameScreen(
 
 @Composable
 private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
+    val extended = LocalExtendedColors.current
+    val modalShape = RoundedCornerShape(24.dp)
+    val resumeShape = RoundedCornerShape(12.dp)
     ModalScaffold(onDismissRequest = onResume) {
         Column(
             modifier = Modifier
                 .widthIn(max = 320.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp)
-                .background(LocalExtendedColors.current.modalSurface, RoundedCornerShape(24.dp))
-                .border(1.dp, LocalExtendedColors.current.modalBorder, RoundedCornerShape(24.dp))
+                .hardShadow(extended, modalShape, large = true)
+                .themedGlow(extended, modalShape, color = extended.cardGlowColor, elevation = extended.cardGlowElevation)
+                .background(extended.modalSurface, modalShape)
+                .border(extended.modalBorderWidth, extended.modalBorder, modalShape)
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -308,7 +324,7 @@ private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
                 text = "PAUSED",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black,
-                color = LocalExtendedColors.current.textStrong,
+                color = extended.textStrong,
             )
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
@@ -317,16 +333,17 @@ private fun PauseDialog(onResume: () -> Unit, onExit: () -> Unit) {
                 NeutralButton(
                     text = "Exit",
                     onClick = onExit,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).height(48.dp),
                 )
                 Button(
                     onClick = hapticClick(onResume),
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
+                    modifier = Modifier.weight(1f).height(48.dp)
+                        .hardShadow(extended, resumeShape, large = true)
+                        .themedGlow(extended, resumeShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                        .primaryButtonGradientBackground(extended, resumeShape),
+                    shape = resumeShape,
+                    colors = primaryButtonColors(extended),
+                    border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
                     contentPadding = PaddingValues(vertical = 10.dp),
                 ) {
                     Text("Resume", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
@@ -458,7 +475,7 @@ private fun PlayingContent(
                     modifier = Modifier
                         .size(40.dp)
                         .background(extended.chromeSurface, RoundedCornerShape(12.dp))
-                        .then(if (extended.chromeBorder != Color.Transparent) Modifier.border(1.dp, extended.chromeBorder, RoundedCornerShape(12.dp)) else Modifier)
+                        .then(if (extended.chromeBorder != Color.Transparent) Modifier.border(extended.chromeBorderWidth, extended.chromeBorder, RoundedCornerShape(12.dp)) else Modifier)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -522,12 +539,14 @@ private fun TapFallbackButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val extended = LocalExtendedColors.current
+    val shape = RoundedCornerShape(12.dp)
     Button(
         onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor, contentColor = accentColor),
-        border = BorderStroke(1.dp, accentColor),
+        modifier = modifier.hardShadow(extended, shape, large = false),
+        shape = shape,
+        colors = ButtonDefaults.buttonColors(containerColor = extended.manualActionButtonBackground ?: backgroundColor, contentColor = accentColor),
+        border = BorderStroke(extended.manualActionButtonBorderWidth, accentColor),
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(6.dp))

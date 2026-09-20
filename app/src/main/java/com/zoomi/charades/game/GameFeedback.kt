@@ -38,9 +38,18 @@ class GameFeedback(context: Context) {
     // fixed, deterministic sound.
     private val correctSamples: ShortArray by lazy { generateCorrectDing() }
     private val incorrectSamples: ShortArray by lazy { generateIncorrectBuzz() }
+    private val finalSecondsBeepSamples: ShortArray by lazy { generateFinalSecondsBeeps() }
 
     fun onCountdownTick() {
         if (hapticsEnabled) vibrate(50)
+    }
+
+    // Fired once per second during the round's final 3 seconds (timeRemaining 3, 2, 1) — plays
+    // three quick beeps within that second as an "almost out of time" cue, distinct from the
+    // pre-round 3-2-1 countdown's single haptic tick.
+    fun onFinalSecondsTick() {
+        if (hapticsEnabled) vibrate(50)
+        playPcm(finalSecondsBeepSamples)
     }
 
     fun onEvent(event: GameEvent) {
@@ -105,6 +114,28 @@ class GameFeedback(context: Context) {
             val envelope = exp(-t / (duration * 0.6))
             val sample = triangle * envelope
             buffer[i] = (sample * Short.MAX_VALUE * 0.95).toInt().toShort()
+        }
+        return buffer
+    }
+
+    // Three short, sharp A5 (880 Hz) blips with brief silent gaps between them, all in one
+    // buffer so a single playPcm() call produces the whole "beep-beep-beep" for that second.
+    private fun generateFinalSecondsBeeps(): ShortArray {
+        val beepDuration = 0.08
+        val gapDuration = 0.09
+        val frequency = 880.0
+        val beepSamples = (SAMPLE_RATE * beepDuration).toInt()
+        val gapSamples = (SAMPLE_RATE * gapDuration).toInt()
+        val buffer = ShortArray(beepSamples * 3 + gapSamples * 2)
+        var index = 0
+        repeat(3) { beepIndex ->
+            for (i in 0 until beepSamples) {
+                val t = i / SAMPLE_RATE.toDouble()
+                val envelope = exp(-t / (beepDuration * 0.3))
+                val sample = sin(2 * PI * frequency * t) * envelope
+                buffer[index++] = (sample * Short.MAX_VALUE * 0.8).toInt().toShort()
+            }
+            if (beepIndex < 2) index += gapSamples // left at 0 — silence between blips
         }
         return buffer
     }

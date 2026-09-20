@@ -19,19 +19,16 @@ enum class AppTheme(val label: String, val description: String) {
     DEFAULT("Sunset Arcade", "Warm dark arcade aesthetic with golden amber highlights"),
     MATRIX_TERMINAL("Matrix Terminal", "Black CRT terminal styling with glowing phosphor green"),
     POP_ART("Pop Art", "Bold primary colours with comic-book energy"),
-    TEST("Cyberpunk Neon", "Vivid experimental styling with bigger icons and playful motion"),
-    // Not yet visually distinct — reuses the Light theme's colour scheme as a starting point
-    // until this gets its own implementation.
-    STUDIO_MINIMALIST("Studio Minimalist", "Clean bright layout for daytime play"),
+    CYBERPUNK_NEON("Cyberpunk Neon", "Midnight synthwave with dual-tone magenta and cyan glow"),
 }
 
 data class GameSettings(
-    val defaultRoundDurationSeconds: Int = 30,
+    val defaultRoundDurationSeconds: Int = 60,
     val tiltSensitivity: TiltSensitivity = TiltSensitivity.MEDIUM,
     val soundEnabled: Boolean = true,
     val touchFallbackEnabled: Boolean = false,
     val invertTilt: Boolean = false,
-    val theme: AppTheme = AppTheme.DEFAULT,
+    val theme: AppTheme = AppTheme.POP_ART,
     val hapticsEnabled: Boolean = true,
     val fullscreenModeEnabled: Boolean = true,
 )
@@ -51,7 +48,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     val settings: Flow<GameSettings> = dataStore.data.map { prefs ->
         GameSettings(
-            defaultRoundDurationSeconds = prefs[Keys.ROUND_DURATION] ?: 30,
+            defaultRoundDurationSeconds = prefs[Keys.ROUND_DURATION] ?: 60,
             tiltSensitivity = prefs[Keys.TILT_SENSITIVITY]
                 ?.let { name -> runCatching { TiltSensitivity.valueOf(name) }.getOrNull() }
                 ?: TiltSensitivity.MEDIUM,
@@ -60,7 +57,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             invertTilt = prefs[Keys.INVERT_TILT] ?: false,
             theme = prefs[Keys.THEME]
                 ?.let { name -> runCatching { AppTheme.valueOf(name) }.getOrNull() }
-                ?: AppTheme.DEFAULT,
+                ?: AppTheme.POP_ART,
             hapticsEnabled = prefs[Keys.HAPTICS_ENABLED] ?: true,
             fullscreenModeEnabled = prefs[Keys.FULLSCREEN_MODE_ENABLED] ?: true,
         )

@@ -93,28 +93,28 @@ class CreateCustomDeckViewModel(
         // immediately after typing the last word instead of tapping Add first.
         val finalWords = mergeWords(words, wordInput)
         if (title.isBlank() || finalWords.size < MIN_WORDS) return
-        words = finalWords
-        wordInput = ""
-        val customCategory = selectedCustomCategory
+        val deckToSave = Deck(
+            id = UUID.randomUUID().toString(),
+            title = title.trim(),
+            // A custom-category deck still needs a `category` enum value to satisfy the
+            // required field (used by swatchColor/filtering elsewhere) — RANDOM_OBJECTS is
+            // an inert default that's never shown, since customCategoryName takes
+            // precedence wherever the category is displayed.
+            category = if (selectedCustomCategory != null) Category.RANDOM_OBJECTS else category,
+            icon = if (selectedCustomCategory != null) "" else category.icon,
+            shortDescription = description.trim().ifBlank { "A custom deck." },
+            howToPlay = howToPlay.trim().ifBlank { "Act it out without speaking or making sounds!" },
+            words = finalWords,
+            isCustom = true,
+            customCategoryName = selectedCustomCategory,
+        )
+        // Reset the form fields (including the word list) immediately, rather than after the
+        // DataStore write completes — the dialog's ViewModel is retained across opens, so the
+        // form otherwise briefly still showed the just-saved words if the dialog was reopened
+        // before the write (and its follow-up reset) had finished.
+        resetFields()
         viewModelScope.launch {
-            deckRepository.addCustomDeck(
-                Deck(
-                    id = UUID.randomUUID().toString(),
-                    title = title.trim(),
-                    // A custom-category deck still needs a `category` enum value to satisfy the
-                    // required field (used by swatchColor/filtering elsewhere) — RANDOM_OBJECTS is
-                    // an inert default that's never shown, since customCategoryName takes
-                    // precedence wherever the category is displayed.
-                    category = if (customCategory != null) Category.RANDOM_OBJECTS else category,
-                    icon = if (customCategory != null) "" else category.icon,
-                    shortDescription = description.trim().ifBlank { "A custom deck." },
-                    howToPlay = howToPlay.trim().ifBlank { "Act it out without speaking or making sounds!" },
-                    words = finalWords,
-                    isCustom = true,
-                    customCategoryName = customCategory,
-                ),
-            )
-            resetFields()
+            deckRepository.addCustomDeck(deckToSave)
             onSaved()
         }
     }

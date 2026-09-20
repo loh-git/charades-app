@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
 import com.zoomi.charades.ui.theme.themedGlow
 
 @Composable
@@ -32,15 +33,15 @@ fun CategoryPill(
 ) {
     val extended = LocalExtendedColors.current
     val shape = RoundedCornerShape(extended.cardCornerRadius)
-    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else extended.pillText
+    val background = if (selected) extended.selectedPillBackground ?: MaterialTheme.colorScheme.primary else extended.pillBackground
+    val contentColor = if (selected) extended.selectedPillContent ?: MaterialTheme.colorScheme.onPrimary else extended.pillText
+    val borderWidth = if (selected) extended.selectedPillBorderWidth else extended.pillBorderWidth
+    val borderColor = if (selected) extended.selectedPillBorderColor else extended.pillBorder
     Row(
         modifier = modifier
-            .then(if (selected) Modifier.themedGlow(extended, shape) else Modifier)
-            .background(
-                if (selected) MaterialTheme.colorScheme.primary else extended.pillBackground,
-                shape,
-            )
-            .then(if (!selected) Modifier.border(1.dp, extended.pillBorder, shape) else Modifier)
+            .then(if (selected) Modifier.themedGlow(extended, shape).hardShadow(extended, shape, large = false) else Modifier)
+            .background(background, shape)
+            .then(if (borderWidth > 0.dp) Modifier.border(borderWidth, borderColor, shape) else Modifier)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,

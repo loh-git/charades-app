@@ -1,5 +1,6 @@
 package com.zoomi.charades.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -53,7 +53,11 @@ import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
 import com.zoomi.charades.ui.theme.iconVector
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 import com.zoomi.charades.ui.viewmodel.CreateCustomDeckViewModel
 
 private val ModalSurface: Color @Composable get() = LocalExtendedColors.current.modalSurface
@@ -64,7 +68,6 @@ private val Amber300: Color @Composable get() = LocalExtendedColors.current.acce
 private val Amber500: Color @Composable get() = MaterialTheme.colorScheme.primary
 private val AmberChipBg: Color @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
 private val AmberChipBorder: Color @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-private val Slate950: Color @Composable get() = MaterialTheme.colorScheme.onPrimary
 private val Slate500: Color @Composable get() = LocalExtendedColors.current.inputPlaceholder
 private val TextSlate100: Color @Composable get() = LocalExtendedColors.current.textStrong
 private val TextSlate400: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
@@ -76,6 +79,7 @@ fun CreateCustomDeckScreen(
     viewModel: CreateCustomDeckViewModel,
     onClose: () -> Unit,
 ) {
+    val createDeckModalShape = RoundedCornerShape(24.dp)
     ModalScaffold(onDismissRequest = onClose) {
         Column(
             modifier = Modifier
@@ -83,8 +87,10 @@ fun CreateCustomDeckScreen(
                 .fillMaxWidth()
                 .height(responsiveModalHeight(740.dp))
                 .padding(horizontal = 16.dp)
-                .background(ModalSurface, RoundedCornerShape(24.dp))
-                .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
+                .hardShadow(LocalExtendedColors.current, createDeckModalShape, large = true)
+                .themedGlow(LocalExtendedColors.current, createDeckModalShape, color = LocalExtendedColors.current.cardGlowColor, elevation = LocalExtendedColors.current.cardGlowElevation)
+                .background(ModalSurface, createDeckModalShape)
+                .border(LocalExtendedColors.current.modalBorderWidth, BorderSlate800, createDeckModalShape)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
         ) {
@@ -156,17 +162,23 @@ fun CreateCustomDeckScreen(
                     onClick = onClose,
                     modifier = Modifier.weight(1f).height(48.dp),
                 )
+                val extended = LocalExtendedColors.current
+                val saveDeckShape = RoundedCornerShape(12.dp)
+                // Same button chrome as the Add (word/category) buttons below — hardShadow,
+                // themedGlow, primaryButtonGradientBackground and primaryButtonColors applied
+                // unconditionally, no bespoke disabled-state colors. primaryButtonColors keeps
+                // its disabled colors identical to the enabled ones (see ExtendedColors.kt), so
+                // this always renders exactly like Add regardless of viewModel.isValid.
                 Button(
                     onClick = hapticClick { viewModel.save(onSaved = onClose) },
                     enabled = viewModel.isValid,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Amber500,
-                        contentColor = Slate950,
-                        disabledContainerColor = Amber500.copy(alpha = 0.4f),
-                        disabledContentColor = Slate950.copy(alpha = 0.6f),
-                    ),
+                    modifier = Modifier.weight(1f)
+                        .hardShadow(extended, saveDeckShape, large = true)
+                        .themedGlow(extended, saveDeckShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                        .primaryButtonGradientBackground(extended, saveDeckShape),
+                    shape = saveDeckShape,
+                    colors = primaryButtonColors(extended),
+                    border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
                 ) {
                     Text("Save Deck", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
@@ -295,12 +307,19 @@ private fun CategorySelector(
                     modifier = Modifier.weight(1f),
                     onSubmit = submitNewCategory,
                 )
+                val addCategoryExtended = LocalExtendedColors.current
+                val addCategoryShape = RoundedCornerShape(12.dp)
                 Button(
                     onClick = hapticClick(submitNewCategory),
-                    modifier = Modifier.height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.height(56.dp)
+                        .hardShadow(addCategoryExtended, addCategoryShape, large = true)
+                        .themedGlow(addCategoryExtended, addCategoryShape, color = addCategoryExtended.primaryButtonGlowColor, elevation = addCategoryExtended.primaryButtonGlowElevation)
+                        .primaryButtonGradientBackground(addCategoryExtended, addCategoryShape),
+                    shape = addCategoryShape,
+                    colors = primaryButtonColors(addCategoryExtended),
+                    border = if (addCategoryExtended.primaryButtonBorderWidth > 0.dp) BorderStroke(addCategoryExtended.primaryButtonBorderWidth, addCategoryExtended.primaryButtonBorderColor) else null,
                 ) {
-                    Text("Add")
+                    Text("Add", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -326,10 +345,17 @@ private fun WordListBuilder(
                 modifier = Modifier.weight(1f),
                 onSubmit = onAddWord,
             )
+            val addWordExtended = LocalExtendedColors.current
+            val addWordShape = RoundedCornerShape(12.dp)
             Button(
                 onClick = hapticClick(onAddWord),
-                modifier = Modifier.height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.height(56.dp)
+                    .hardShadow(addWordExtended, addWordShape, large = true)
+                    .themedGlow(addWordExtended, addWordShape, color = addWordExtended.primaryButtonGlowColor, elevation = addWordExtended.primaryButtonGlowElevation)
+                    .primaryButtonGradientBackground(addWordExtended, addWordShape),
+                shape = addWordShape,
+                colors = primaryButtonColors(addWordExtended),
+                border = if (addWordExtended.primaryButtonBorderWidth > 0.dp) BorderStroke(addWordExtended.primaryButtonBorderWidth, addWordExtended.primaryButtonBorderColor) else null,
             ) {
                 Text("Add")
             }

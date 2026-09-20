@@ -1,5 +1,6 @@
 package com.zoomi.charades.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,10 +31,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.hapticClick
+import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 
 private const val MAX_TEAM_NAME_LENGTH = 25
 
@@ -93,10 +100,18 @@ fun TeamSetupScreen(onStartMatch: (List<String>) -> Unit, onBack: () -> Unit) {
             }
         }
 
+        val extended = LocalExtendedColors.current
+        val addTeamShape = RoundedCornerShape(12.dp)
+        val primaryButtonBorder = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null
         Button(
             onClick = hapticClick { teamNames = teamNames + "Team ${teamNames.size + 1}" },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                .hardShadow(extended, addTeamShape, large = true)
+                .themedGlow(extended, addTeamShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                .primaryButtonGradientBackground(extended, addTeamShape),
+            shape = addTeamShape,
+            colors = primaryButtonColors(extended),
+            border = primaryButtonBorder,
         ) {
             Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
@@ -109,11 +124,19 @@ fun TeamSetupScreen(onStartMatch: (List<String>) -> Unit, onBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            val startMatchShape = RoundedCornerShape(12.dp)
+            val startMatchEnabled = validNames.size >= 2
             Button(
                 onClick = hapticClick { onStartMatch(validNames) },
-                enabled = validNames.size >= 2,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                enabled = startMatchEnabled,
+                modifier = Modifier.fillMaxWidth()
+                    .hardShadow(extended, startMatchShape, large = true)
+                    .themedGlow(extended, startMatchShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                    .primaryButtonGradientBackground(extended, startMatchShape)
+                    .then(if (extended.primaryButtonGradient != null && !startMatchEnabled) Modifier.alpha(0.4f) else Modifier),
+                shape = startMatchShape,
+                colors = primaryButtonColors(extended),
+                border = primaryButtonBorder,
             ) {
                 Text("Start Match")
                 Spacer(modifier = Modifier.width(8.dp))

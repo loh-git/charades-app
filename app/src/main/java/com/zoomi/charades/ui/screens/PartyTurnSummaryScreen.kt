@@ -1,5 +1,6 @@
 package com.zoomi.charades.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -29,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import com.zoomi.charades.game.PartyMatchUiState
 import com.zoomi.charades.game.WordResult
 import com.zoomi.charades.ui.components.hapticClick
+import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 
 @Composable
 fun PartyTurnSummaryScreen(
@@ -114,7 +121,18 @@ fun PartyTurnSummaryScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Button(onClick = hapticClick(onNextTurn), modifier = Modifier.fillMaxWidth()) {
+            val extended = LocalExtendedColors.current
+            val nextTurnShape = ButtonDefaults.shape
+            Button(
+                onClick = hapticClick(onNextTurn),
+                modifier = Modifier.fillMaxWidth()
+                    .hardShadow(extended, nextTurnShape, large = true)
+                    .themedGlow(extended, nextTurnShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                    .primaryButtonGradientBackground(extended, nextTurnShape),
+                shape = nextTurnShape,
+                colors = primaryButtonColors(extended),
+                border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
+            ) {
                 Text("Start ${partyState.upNextTeamName ?: "Next"}'s Turn")
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))

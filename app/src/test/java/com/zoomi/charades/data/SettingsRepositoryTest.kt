@@ -29,12 +29,12 @@ class SettingsRepositoryTest {
     fun `defaults to sensible values`() = runTest {
         val settings = newRepository().settings.first()
 
-        assertEquals(30, settings.defaultRoundDurationSeconds)
+        assertEquals(60, settings.defaultRoundDurationSeconds)
         assertEquals(TiltSensitivity.MEDIUM, settings.tiltSensitivity)
         assertTrue(settings.soundEnabled)
         assertFalse(settings.touchFallbackEnabled)
         assertFalse(settings.invertTilt)
-        assertEquals(AppTheme.DEFAULT, settings.theme)
+        assertEquals(AppTheme.POP_ART, settings.theme)
         assertTrue(settings.hapticsEnabled)
         assertTrue(settings.fullscreenModeEnabled)
     }

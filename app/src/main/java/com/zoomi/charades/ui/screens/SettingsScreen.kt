@@ -50,17 +50,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.zoomi.charades.BuildConfig
 import com.zoomi.charades.data.AppTheme
 import com.zoomi.charades.data.TiltSensitivity
 import com.zoomi.charades.ui.components.ModalCloseButton
@@ -70,7 +73,11 @@ import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.OptionPill
 import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
 import com.zoomi.charades.ui.theme.previewAccent
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 import com.zoomi.charades.ui.theme.previewBackground
 import com.zoomi.charades.ui.viewmodel.SettingsViewModel
 import java.time.LocalDateTime
@@ -86,7 +93,7 @@ private val TextSlate100: Color @Composable get() = LocalExtendedColors.current.
 private val TextSlate400: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 private val WhiteBorder10: Color @Composable get() = LocalExtendedColors.current.dividerFaint
 
-private val ROUND_DURATION_OPTIONS = listOf(30, 60, 90)
+private val ROUND_DURATION_OPTIONS = listOf(30, 60, 90, 120)
 private const val PRIVACY_POLICY_URL = "https://loh-git.github.io/zoomi-privacy-policy/"
 private const val FEEDBACK_EMAIL = "zoomistudios@outlook.com"
 
@@ -95,7 +102,9 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
     val settings by viewModel.settings.collectAsState()
     val context = LocalContext.current
     var feedbackOpen by remember { mutableStateOf(false) }
+    val extended = LocalExtendedColors.current
 
+    val settingsModalShape = RoundedCornerShape(24.dp)
     ModalScaffold(onDismissRequest = onClose) {
         Column(
             modifier = Modifier
@@ -103,10 +112,12 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                 .fillMaxWidth()
                 .height(responsiveModalHeight(760.dp))
                 .padding(horizontal = 16.dp)
-                .background(ModalSurface, RoundedCornerShape(24.dp))
-                .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
+                .hardShadow(LocalExtendedColors.current, settingsModalShape, large = true)
+                .themedGlow(LocalExtendedColors.current, settingsModalShape, color = LocalExtendedColors.current.cardGlowColor, elevation = LocalExtendedColors.current.cardGlowElevation)
+                .background(ModalSurface, settingsModalShape)
+                .border(LocalExtendedColors.current.modalBorderWidth, BorderSlate800, settingsModalShape)
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(extended.settingsContentPadding),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -142,7 +153,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                 onSelect = viewModel::setTheme,
                 modifier = Modifier.padding(top = 8.dp),
             )
-            ThemeDetailsCard(theme = settings.theme, modifier = Modifier.padding(top = 12.dp))
+//            ThemeDetailsCard(theme = settings.theme, modifier = Modifier.padding(top = 12.dp))
 
             SectionLabel("Default Round Duration", modifier = Modifier.padding(top = 24.dp))
             Row(
@@ -155,6 +166,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                         selected = settings.defaultRoundDurationSeconds == seconds,
                         onClick = { viewModel.setRoundDuration(seconds) },
                         modifier = Modifier.weight(1f),
+                        selectedGradient = extended.timerOptionGradient,
                     )
                 }
             }
@@ -219,6 +231,13 @@ fun SettingsScreen(viewModel: SettingsViewModel, onClose: () -> Unit) {
                 onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))) },
                 modifier = Modifier.padding(top = 8.dp),
             )
+            Text(
+                text = "App Version: ${BuildConfig.VERSION_NAME}",
+                fontSize = 14.sp, // doubled from the original half-size (7.sp) per a follow-up request
+                color = TextSlate100.copy(alpha = 0.5f), // same white, more faded
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            )
         }
     }
 
@@ -253,14 +272,17 @@ private fun SubmitFeedbackDialog(onClose: () -> Unit) {
     val context = LocalContext.current
     var message by remember { mutableStateOf("") }
 
+    val feedbackModalShape = RoundedCornerShape(24.dp)
     ModalScaffold(onDismissRequest = onClose) {
         Column(
             modifier = Modifier
                 .widthIn(max = 480.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .background(ModalSurface, RoundedCornerShape(24.dp))
-                .border(1.dp, BorderSlate800, RoundedCornerShape(24.dp))
+                .hardShadow(LocalExtendedColors.current, feedbackModalShape, large = true)
+                .themedGlow(LocalExtendedColors.current, feedbackModalShape, color = LocalExtendedColors.current.cardGlowColor, elevation = LocalExtendedColors.current.cardGlowElevation)
+                .background(ModalSurface, feedbackModalShape)
+                .border(LocalExtendedColors.current.modalBorderWidth, BorderSlate800, feedbackModalShape)
                 .padding(24.dp),
         ) {
             Row(
@@ -304,15 +326,24 @@ private fun SubmitFeedbackDialog(onClose: () -> Unit) {
                     onClick = onClose,
                     modifier = Modifier.weight(1f).height(48.dp),
                 )
+                val sendExtended = LocalExtendedColors.current
+                val sendShape = RoundedCornerShape(12.dp)
+                val sendEnabled = message.isNotBlank()
                 Button(
                     onClick = hapticClick {
                         if (sendFeedbackEmail(context, message)) onClose()
                     },
-                    enabled = message.isNotBlank(),
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    enabled = sendEnabled,
+                    modifier = Modifier.weight(1f).height(48.dp)
+                        .hardShadow(sendExtended, sendShape, large = true)
+                        .themedGlow(sendExtended, sendShape, color = sendExtended.primaryButtonGlowColor, elevation = sendExtended.primaryButtonGlowElevation)
+                        .primaryButtonGradientBackground(sendExtended, sendShape)
+                        .then(if (sendExtended.primaryButtonGradient != null && !sendEnabled) Modifier.alpha(0.4f) else Modifier),
+                    shape = sendShape,
+                    colors = primaryButtonColors(sendExtended),
+                    border = if (sendExtended.primaryButtonBorderWidth > 0.dp) BorderStroke(sendExtended.primaryButtonBorderWidth, sendExtended.primaryButtonBorderColor) else null,
                 ) {
-                    Text("Send")
+                    Text("Send", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -417,11 +448,12 @@ private fun ThemeDropdownSelector(selected: AppTheme, onSelect: (AppTheme) -> Un
 
 @Composable
 private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
+    val extended = LocalExtendedColors.current
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(LocalExtendedColors.current.inputSurface, RoundedCornerShape(16.dp))
-            .border(1.dp, Amber500.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+            .background(extended.inputSurface, RoundedCornerShape(16.dp))
+            .border(1.dp, extended.themePreviewBorderColor ?: Amber500.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
@@ -459,7 +491,7 @@ private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
             }
         }
         Column {
-            Text(text = theme.label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
+            Text(text = theme.label, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
             Text(
                 text = theme.description,
                 fontSize = 12.sp,
@@ -469,6 +501,37 @@ private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
         }
     }
 }
+
+// Newer version of ThemeDetailsCard — a generic "this is about theming" palette icon (colored
+// from the active theme's own switch-accent/page-background/page-border tokens) with just the
+// theme name, instead of the per-theme preview dots + description look above. Kept here, not
+// deleted, in case that look comes back. To restore it: uncomment this and delete the active
+// ThemeDetailsCard above (its previewBackground/previewAccent dependency in ui/theme/Color.kt
+// and this file's imports of them can stay either way — they're harmless if unused).
+// @Composable
+// private fun ThemeDetailsCard(theme: AppTheme, modifier: Modifier = Modifier) {
+//     val extended = LocalExtendedColors.current
+//     Row(
+//         modifier = modifier
+//             .fillMaxWidth()
+//             .background(extended.inputSurface, RoundedCornerShape(16.dp))
+//             .border(1.dp, extended.themePreviewBorderColor ?: Amber500.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+//             .padding(16.dp),
+//         horizontalArrangement = Arrangement.spacedBy(12.dp),
+//         verticalAlignment = Alignment.CenterVertically,
+//     ) {
+//         Box(
+//             modifier = Modifier
+//                 .size(48.dp)
+//                 .background(ModalSurface, RoundedCornerShape(12.dp))
+//                 .border(1.dp, BorderSlate800, RoundedCornerShape(12.dp)),
+//             contentAlignment = Alignment.Center,
+//         ) {
+//             Icon(imageVector = Icons.Filled.Palette, contentDescription = null, tint = Amber500, modifier = Modifier.size(22.dp))
+//         }
+//         Text(text = theme.label, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = TextSlate100)
+//     }
+// }
 
 @Composable
 private fun ToggleRow(

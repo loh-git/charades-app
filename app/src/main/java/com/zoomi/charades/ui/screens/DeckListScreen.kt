@@ -3,6 +3,7 @@ package com.zoomi.charades.ui.screens
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -63,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
@@ -86,7 +88,10 @@ import com.zoomi.charades.ui.components.ModalScaffold
 import com.zoomi.charades.ui.components.responsiveModalHeight
 import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
 import com.zoomi.charades.ui.theme.iconVector
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
 import com.zoomi.charades.ui.theme.swatchColor
 import com.zoomi.charades.ui.theme.themedGlow
 import com.zoomi.charades.ui.viewmodel.CreateCustomDeckViewModel
@@ -227,7 +232,7 @@ private fun TopBar(onShuffle: () -> Unit, onOpenStats: () -> Unit, onOpenSetting
             Text(
                 text = buildAnnotatedString {
                     append("Ultimate ")
-                    withStyle(SpanStyle(color = extended.iconAccentGold)) { append("Charades") }
+                    withStyle(SpanStyle(color = extended.titleAccentColor)) { append("Charades") }
                 },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
@@ -241,9 +246,10 @@ private fun TopBar(onShuffle: () -> Unit, onOpenStats: () -> Unit, onOpenSetting
                 icon = Icons.Filled.Shuffle,
                 contentDescription = "Shuffle a deck",
                 onClick = onShuffle,
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                containerColor = extended.shuffleIconBackground ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                borderColor = extended.shuffleIconBorder ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                 contentColor = extended.shuffleIconTint,
+                glowColor = extended.shuffleGlowColor ?: Color.Transparent,
                 spinOnClick = extended.playfulAnimations,
             )
             if (!extended.useBottomNav) {
@@ -254,6 +260,7 @@ private fun TopBar(onShuffle: () -> Unit, onOpenStats: () -> Unit, onOpenSetting
                     containerColor = extended.iconButtonBackground.copy(alpha = 0.8f),
                     borderColor = extended.iconButtonBorder,
                     contentColor = extended.iconButtonContent,
+                    glowColor = extended.statsGlowColor ?: Color.Transparent,
                     flipHorizontally = true,
                 )
                 TopBarIconButton(
@@ -261,8 +268,10 @@ private fun TopBar(onShuffle: () -> Unit, onOpenStats: () -> Unit, onOpenSetting
                     contentDescription = "Settings",
                     onClick = onOpenSettings,
                     containerColor = extended.primarySolidIconButtonBackground,
-                    borderColor = null,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    containerBrush = extended.settingsButtonGradient,
+                    borderColor = extended.primarySolidIconButtonBorder,
+                    contentColor = extended.primarySolidIconButtonContent ?: MaterialTheme.colorScheme.onPrimary,
+                    glowColor = extended.settingsGlowColor ?: Color.Transparent,
 //                    shape = RoundedCornerShape(extended.cardCornerRadius),
                 )
             }
@@ -278,10 +287,13 @@ private fun TopBarIconButton(
     containerColor: Color,
     borderColor: Color?,
     contentColor: Color,
+    containerBrush: Brush? = null,
+    glowColor: Color = Color.Transparent,
     spinOnClick: Boolean = false,
     flipHorizontally: Boolean = false,
     shape: RoundedCornerShape = RoundedCornerShape(12.dp),
 ) {
+    val extended = LocalExtendedColors.current
     var spinTrigger by remember { mutableIntStateOf(0) }
     val rotation = remember { Animatable(0f) }
     LaunchedEffect(spinTrigger) {
@@ -292,10 +304,13 @@ private fun TopBarIconButton(
     Box(
         modifier = Modifier
             .size(44.dp)
+            .hardShadow(extended, shape, large = false)
+            .themedGlow(extended, shape, color = glowColor, elevation = extended.headerButtonGlowElevation)
             .background(containerColor, shape)
+            .then(if (containerBrush != null) Modifier.background(containerBrush, shape) else Modifier)
             .then(
                 if (borderColor != null) {
-                    Modifier.border(1.dp, borderColor, shape)
+                    Modifier.border(extended.iconBadgeBorderWidth, borderColor, shape)
                 } else {
                     Modifier
                 },
@@ -423,16 +438,31 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
 @Composable
 private fun AddCustomDeckButton(onClick: () -> Unit) {
     val extended = LocalExtendedColors.current
+    val shape = RoundedCornerShape(extended.cardCornerRadius)
+    // This banner CTA can stand apart from every other primary button (e.g. Cyberpunk's
+    // tri-color gradient here vs. the pink-rose gradient on Start Game/Save Deck/etc.) — falls
+    // back to the shared primary-button gradient/glow when a theme hasn't set its own.
+    val gradient = extended.createDeckButtonGradient ?: extended.primaryButtonGradient
+    val glowColor = if (extended.createDeckButtonGlowColor != Color.Transparent) extended.createDeckButtonGlowColor else extended.primaryButtonGlowColor
+    val glowElevation = if (extended.createDeckButtonGlowColor != Color.Transparent) extended.createDeckButtonGlowElevation else extended.primaryButtonGlowElevation
     Button(
         onClick = hapticClick(onClick),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-        shape = RoundedCornerShape(extended.cardCornerRadius),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.Black),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
+            .hardShadow(extended, shape, large = true)
+            .themedGlow(extended, shape, color = glowColor, elevation = glowElevation)
+            .then(if (gradient != null) Modifier.background(gradient, shape) else Modifier),
+        shape = shape,
+        colors = if (gradient != null) {
+            ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White)
+        } else {
+            primaryButtonColors(extended)
+        },
+        border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
     ) {
         Text(
             text = "+  Create Custom Deck",
             fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = if (extended.createDeckButtonGradient != null) FontWeight.ExtraBold else FontWeight.Bold,
             modifier = Modifier.padding(vertical = 8.dp),
         )
     }
@@ -464,6 +494,7 @@ private fun DeckCard(deck: Deck, isFavorited: Boolean, onClick: () -> Unit, onTo
             .fillMaxWidth()
             .then(if (extended.cardElevation > 0.dp) Modifier.shadow(extended.cardElevation, shape) else Modifier)
             .themedGlow(extended, shape, color = extended.cardGlowColor, elevation = extended.cardGlowElevation)
+            .hardShadow(extended, shape, large = true)
             .background(cardBackground, shape)
             .then(
                 if (extended.cardBorderWidth > 0.dp) {
@@ -479,14 +510,16 @@ private fun DeckCard(deck: Deck, isFavorited: Boolean, onClick: () -> Unit, onTo
                 Box(
                     modifier = Modifier
                         .size(extended.deckIconSize)
-                        .background(extended.deckBadgeBackground, RoundedCornerShape(16.dp))
-                        .border(1.dp, extended.deckBadgeBorder, RoundedCornerShape(16.dp)),
+                        .themedGlow(extended, RoundedCornerShape(16.dp), color = extended.iconBadgeGlowColor, elevation = extended.iconBadgeGlowElevation)
+                        .background(extended.iconBadgeBackground, RoundedCornerShape(16.dp))
+                        .then(if (extended.iconBadgeGradient != null) Modifier.background(extended.iconBadgeGradient, RoundedCornerShape(16.dp)) else Modifier)
+                        .border(extended.iconBadgeBorderWidth, extended.iconBadgeBorder, RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = if (deck.customCategoryName != null) Icons.Filled.Category else deck.category.iconVector,
                         contentDescription = deck.customCategoryName ?: deck.category.displayName,
-                        tint = extended.iconAccentGold,
+                        tint = extended.iconBadgeTint,
                         modifier = Modifier.size(extended.deckIconSize * 0.5f),
                     )
                 }
@@ -495,13 +528,13 @@ private fun DeckCard(deck: Deck, isFavorited: Boolean, onClick: () -> Unit, onTo
                         Box(
                             modifier = Modifier
                                 .background(extended.deckBadgeBackground, RoundedCornerShape(50))
-                                .border(1.dp, extended.deckBadgeBorder, RoundedCornerShape(50))
+                                .border(extended.iconBadgeBorderWidth, extended.deckBadgeBorder, RoundedCornerShape(50))
                                 .padding(horizontal = 8.dp, vertical = 3.dp),
                         ) {
                             Text(
                                 text = deck.customCategoryName ?: deck.category.displayName,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = extended.iconAccentGold,
+                                color = extended.deckBadgeTint,
                             )
                         }
                         FavoriteStar(isFavorited = isFavorited, onToggleFavorite = onToggleFavorite)
@@ -539,13 +572,13 @@ private fun DeckCard(deck: Deck, isFavorited: Boolean, onClick: () -> Unit, onTo
                 Text(
                     text = "Select Deck ",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = extended.deckSelectActionColor ?: MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = extended.deckSelectActionColor ?: MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp),
                 )
             }
@@ -588,7 +621,10 @@ private fun FavoriteStar(isFavorited: Boolean, onToggleFavorite: () -> Unit) {
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = hapticClick {
-                        glowTrigger++
+                        // Only flash the glow when this tap is about to favorite the deck, not
+                        // when it's un-favoriting one — the fade-out effect should never play on
+                        // de-select.
+                        if (!isFavorited) glowTrigger++
                         onToggleFavorite()
                     },
                 )
@@ -608,14 +644,17 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
     var currentDeck by remember { mutableStateOf(decks.random()) }
 
     ModalScaffold(onDismissRequest = onDismiss) {
+        val shuffleModalShape = RoundedCornerShape(20.dp)
         Box(
             modifier = Modifier
                 .widthIn(max = 440.dp)
                 .fillMaxWidth()
                 .height(responsiveModalHeight(300.dp))
                 .padding(horizontal = 24.dp)
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp))
-                .border(1.dp, extended.modalBorder, RoundedCornerShape(20.dp)),
+                .hardShadow(extended, shuffleModalShape, large = true)
+                .themedGlow(extended, shuffleModalShape, color = extended.cardGlowColor, elevation = extended.cardGlowElevation)
+                .background(MaterialTheme.colorScheme.surface, shuffleModalShape)
+                .border(extended.modalBorderWidth, extended.modalBorder, shuffleModalShape),
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
@@ -641,14 +680,18 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
                 modifier = Modifier
                     .padding(top = 20.dp)
                     .size(72.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
+                    .background(extended.headerIconBackground ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                    .border(
+                        extended.iconBadgeBorderWidth,
+                        extended.headerIconBorder ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        RoundedCornerShape(16.dp),
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = if (currentDeck.customCategoryName != null) Icons.Filled.Category else currentDeck.category.iconVector,
                     contentDescription = currentDeck.customCategoryName ?: currentDeck.category.displayName,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = extended.headerIconTint ?: MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(36.dp),
                 )
             }
@@ -678,12 +721,14 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val rerollShape = RoundedCornerShape(extended.cardCornerRadius)
                 Row(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
-                        .background(extended.iconButtonBackground, RoundedCornerShape(extended.cardCornerRadius))
-                        .border(1.dp, extended.iconButtonBorder, RoundedCornerShape(extended.cardCornerRadius))
+                        .hardShadow(extended, rerollShape, large = false)
+                        .background(extended.shuffleIconBackground ?: extended.iconButtonBackground, rerollShape)
+                        .border(extended.iconBadgeBorderWidth, extended.shuffleIconBorder ?: extended.iconButtonBorder, rerollShape)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -695,18 +740,24 @@ private fun ShuffleDeckDialog(decks: List<Deck>, onDismiss: () -> Unit, onPlayDe
                     Icon(
                         imageVector = Icons.Filled.Shuffle,
                         contentDescription = null,
-                        tint = extended.iconButtonContent,
+                        tint = extended.shuffleIconTint,
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Shuffle", color = extended.iconButtonContent, style = MaterialTheme.typography.labelLarge)
+                    Text("Shuffle", color = extended.shuffleIconTint, style = MaterialTheme.typography.labelLarge)
                 }
+                val playShape = RoundedCornerShape(extended.cardCornerRadius)
                 Button(
                     onClick = hapticClick { onPlayDeck(currentDeck) },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    shape = RoundedCornerShape(extended.cardCornerRadius),
+                    modifier = Modifier.weight(1f).height(48.dp)
+                        .hardShadow(extended, playShape, large = true)
+                        .themedGlow(extended, playShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                        .primaryButtonGradientBackground(extended, playShape),
+                    shape = playShape,
+                    colors = primaryButtonColors(extended),
+                    border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
                 ) {
-                    Text("Play")
+                    Text("Play", fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                 }

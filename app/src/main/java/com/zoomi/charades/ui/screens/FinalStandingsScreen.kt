@@ -1,5 +1,6 @@
 package com.zoomi.charades.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +29,11 @@ import androidx.compose.ui.unit.dp
 import com.zoomi.charades.game.PartyMatchUiState
 import com.zoomi.charades.game.TeamScore
 import com.zoomi.charades.ui.components.ScreenHeaderIcon
+import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 import com.zoomi.charades.ui.components.hapticClick
 
 @Composable
@@ -90,10 +96,17 @@ fun FinalStandingsScreen(partyState: PartyMatchUiState, onMainMenu: () -> Unit) 
             }
         }
 
+        val extended = LocalExtendedColors.current
+        val mainMenuShape = RoundedCornerShape(12.dp)
         Button(
             onClick = hapticClick(onMainMenu),
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                .hardShadow(extended, mainMenuShape, large = true)
+                .themedGlow(extended, mainMenuShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                .primaryButtonGradientBackground(extended, mainMenuShape),
+            shape = mainMenuShape,
+            colors = primaryButtonColors(extended),
+            border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
         ) {
             Icon(imageVector = Icons.Filled.Home, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))

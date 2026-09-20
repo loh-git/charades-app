@@ -12,11 +12,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
 import com.zoomi.charades.data.AppTheme
 
-// "Sunset Arcade" (AppTheme.DEFAULT) — the app's first-launch theme. Originally locked
-// pixel-identical to the pre-theming app; deliberately updated per an explicit redesign request,
-// now matched to the designer's exact spec (Tailwind tokens — see Color.kt). No longer treat this
-// scheme as frozen without checking. onPrimary is intentionally dark (BackgroundDark, not
-// TextPrimary) — the reference calls for dark text on the amber primary buttons/badges.
+// "Sunset Arcade" (AppTheme.DEFAULT) — the app's original theme (Pop Art is now the first-launch
+// default; see GameSettings/SettingsRepository). Originally locked pixel-identical to the
+// pre-theming app; deliberately updated per an explicit redesign request, now matched to the
+// designer's exact spec (Tailwind tokens — see Color.kt). No longer treat this scheme as frozen
+// without checking. onPrimary is intentionally dark (BackgroundDark, not TextPrimary) — the
+// reference calls for dark text on the amber primary buttons/badges.
 private val DefaultColorScheme = darkColorScheme(
     primary = OrangeAccent,
     onPrimary = BackgroundDark,
@@ -32,34 +33,27 @@ private val DefaultColorScheme = darkColorScheme(
     outline = OutlineDark,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = OrangeAccent,
-    onPrimary = OnPrimaryLight,
-    secondary = PinkAccent,
-    onSecondary = TextPrimaryLight,
-    tertiary = CorrectGreen,
-    background = BackgroundLight,
-    onBackground = TextPrimaryLight,
-    surface = SurfaceLight,
-    onSurface = TextPrimaryLight,
-    surfaceVariant = SurfaceVariantLight,
-    onSurfaceVariant = TextSecondaryLight,
-    outline = OutlineLight,
-)
-
+// "Colourful Pop" (AppTheme.POP_ART) — Neo-Brutalist comic-book look, per an explicit design
+// spec. primary is the sunflower-yellow CTA color; secondary is the separate hot-pink "active
+// accent" used for selected filter pills/logo highlight, distinct from the primary CTA color.
 private val PopArtColorScheme = lightColorScheme(
-    primary = PopArtRed,
-    onPrimary = Color.White,
-    secondary = PopArtBlue,
-    onSecondary = Color.White,
-    tertiary = PopArtYellow,
+    primary = PopArtYellow400,
+    onPrimary = OutlinePopArt,
+    secondary = PopArtPink400,
+    onSecondary = OutlinePopArt,
+    tertiary = CorrectGreen,
     background = BackgroundPopArt,
     onBackground = TextPrimaryPopArt,
     surface = SurfacePopArt,
     onSurface = TextPrimaryPopArt,
-    surfaceVariant = SurfaceVariantPopArt,
+    surfaceVariant = SurfacePopArt,
     onSurfaceVariant = TextSecondaryPopArt,
     outline = OutlinePopArt,
+    outlineVariant = OutlinePopArt,
+    error = PopArtRose300,
+    onError = OutlinePopArt,
+    errorContainer = PopArtRose200,
+    onErrorContainer = OutlinePopArt,
 )
 
 // "Matrix Terminal" — a pure-black CRT-terminal theme with neon phosphor green, per an explicit
@@ -114,27 +108,36 @@ private val MatrixTypography = Typography().let { base ->
 }
 private val DefaultTypography = Typography()
 
-private val TestColorScheme = lightColorScheme(
-    primary = TestBlue,
-    onPrimary = Color.White,
-    secondary = TestPurple,
+// "Cyberpunk Neon" (AppTheme.CYBERPUNK_NEON) — midnight synthwave HUD look, per an explicit
+// design spec. primary is laser cyan (solid active-pill fill, text-black on it, per the spec's
+// "Active Tab: bg-cyan-500 text-black"); primary CTA buttons instead use a dedicated
+// pink-to-rose gradient (see ExtendedColors.primaryButtonGradient) rather than a solid primary
+// fill, since this theme's buttons are explicitly gradient-filled.
+private val CyberpunkColorScheme = darkColorScheme(
+    primary = CyberCyan500,
+    onPrimary = Color.Black,
+    secondary = CyberPink400,
     onSecondary = Color.White,
-    tertiary = TestGreen,
-    background = BackgroundTest,
-    onBackground = TextPrimaryTest,
-    surface = SurfaceTest,
-    onSurface = TextPrimaryTest,
-    surfaceVariant = SurfaceVariantTest,
-    onSurfaceVariant = TextSecondaryTest,
-    outline = OutlineTest,
+    tertiary = CorrectGreen,
+    background = CyberBackground,
+    onBackground = Color.White,
+    surface = CyberCardSurface,
+    onSurface = Color.White,
+    surfaceVariant = CyberCardSurface,
+    onSurfaceVariant = CyberSlate400,
+    outline = CyberCyan500.copy(alpha = 0.4f),
+    outlineVariant = CyberCyan500.copy(alpha = 0.25f),
+    error = CyberRose400,
+    onError = Color.White,
+    errorContainer = CyberRose950,
+    onErrorContainer = CyberRose400,
 )
 
 private fun colorSchemeFor(theme: AppTheme) = when (theme) {
     AppTheme.DEFAULT -> DefaultColorScheme
     AppTheme.MATRIX_TERMINAL -> MatrixColorScheme
     AppTheme.POP_ART -> PopArtColorScheme
-    AppTheme.TEST -> TestColorScheme
-    AppTheme.STUDIO_MINIMALIST -> LightColorScheme
+    AppTheme.CYBERPUNK_NEON -> CyberpunkColorScheme
 }
 
 private fun typographyFor(theme: AppTheme) = when (theme) {
@@ -149,21 +152,24 @@ private fun typographyFor(theme: AppTheme) = when (theme) {
 private const val MatrixFontScale = 0.9f
 
 @Composable
-fun CharadesTheme(theme: AppTheme = AppTheme.DEFAULT, content: @Composable () -> Unit) {
+fun CharadesTheme(theme: AppTheme = AppTheme.POP_ART, content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalExtendedColors provides extendedColorsFor(theme)) {
         MaterialTheme(
             colorScheme = colorSchemeFor(theme),
             typography = typographyFor(theme),
         ) {
-            if (theme == AppTheme.MATRIX_TERMINAL) {
-                val density = LocalDensity.current
-                CompositionLocalProvider(
-                    LocalDensity provides Density(density.density, density.fontScale * MatrixFontScale),
-                    content = content,
-                )
-            } else {
-                content()
-            }
+            // Always taking this same code path (rather than branching on theme) matters: an
+            // if/else around composable content is a structurally different subtree per branch,
+            // so switching themes across that branch would tear down and recompose everything
+            // below it from scratch — including the NavHost's rememberNavController() state,
+            // which reset navigation back to the "loading" start destination on every theme
+            // change. A no-op 1x multiplier for every other theme avoids that entirely.
+            val density = LocalDensity.current
+            val fontScale = if (theme == AppTheme.MATRIX_TERMINAL) MatrixFontScale else 1f
+            CompositionLocalProvider(
+                LocalDensity provides Density(density.density, density.fontScale * fontScale),
+                content = content,
+            )
         }
     }
 }

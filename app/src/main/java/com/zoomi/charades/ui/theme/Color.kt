@@ -27,47 +27,54 @@ val CategoryMutedGray = Color(0xFF90A1B9) // unselected category-pill icon/text/
 
 val AccentGradient = Brush.horizontalGradient(listOf(OrangeAccent, SunsetGradientEnd))
 
-// Light theme
-val BackgroundLight = Color(0xFFF7F7FA)
-val SurfaceLight = Color(0xFFFFFFFF)
-val SurfaceVariantLight = Color(0xFFF0F1F5)
-val OutlineLight = Color(0xFFE1E3EA)
-val TextPrimaryLight = Color(0xFF14171F)
-val TextSecondaryLight = Color(0xFF5B6272)
-val OnPrimaryLight = Color(0xFF1A1A1A)
+// Pop Art theme — "Colourful Pop", a Neo-Brutalist comic-book look (bold ink outlines, hard
+// offset "sticker" shadows, pastel accent colors on a warm butter-yellow canvas), per an explicit
+// design spec (Tailwind tokens). Values taken directly from that spec.
+val BackgroundPopArt = Color(0xFFFEF3C7) // amber-100 — canvas
+val SurfacePopArt = Color(0xFFFFFFFF) // white — card/container surfaces
+val OutlinePopArt = Color(0xFF0F172A) // slate-900 — "ink": all text, outlines, hard shadows
+val TextPrimaryPopArt = Color(0xFF0F172A) // slate-900
+val TextSecondaryPopArt = Color(0xFF334155) // slate-700
 
-// Pop Art theme
-val BackgroundPopArt = Color(0xFFFFF8E7)
-val SurfacePopArt = Color(0xFFFFFFFF)
-val SurfaceVariantPopArt = Color(0xFFFFF3CC)
-val OutlinePopArt = Color(0xFF14171A)
-val TextPrimaryPopArt = Color(0xFF14171A)
-val TextSecondaryPopArt = Color(0xFF3A3A3A)
-val PopArtRed = Color(0xFFE8291C)
-val PopArtBlue = Color(0xFF1E5FFF)
-val PopArtYellow = Color(0xFFFFD400)
+val PopArtYellow400 = Color(0xFFFACC15) // primary CTA buttons
+val PopArtPink400 = Color(0xFFF472B6) // active tabs, settings button
+val PopArtPink600 = Color(0xFFDB2777) // logo highlight, countdown number
+val PopArtSky300 = Color(0xFF7DD3FC) // shuffle button, category badges
+val PopArtEmerald300 = Color(0xFF6EE7B7) // stats button, correct state
+val PopArtRose200 = Color(0xFFFECDD3)
+val PopArtRose300 = Color(0xFFFDA4AF) // pass state, error tags
+val PopArtAmber300 = Color(0xFFFCD34D) // deck emblem icon box
 
-val PopArtAccentGradient = Brush.horizontalGradient(listOf(PopArtRed, PopArtYellow))
+val PopArtAccentGradient = Brush.horizontalGradient(listOf(PopArtPink600, PopArtPink600)) // solid, not a real gradient — spec calls for solid pink-600 wherever this is used
 
-// Test theme — a bolder, more playful "toy app" look: vivid saturated cards, thick gold
-// borders, bigger icons. See ui/theme/ExtendedColors.kt for the border/icon-size tokens that
-// go with this palette. The four neutrals below form a deliberate light-to-dark tonal scale
-// (Surface > Background > SurfaceVariant > Outline) so nested elements are always visually
-// distinct from whatever they sit on — SurfaceVariant previously matched Surface exactly
-// (both pure white), making any surfaceVariant-backed box on Test theme blend invisibly into
-// its parent card.
-val BackgroundTest = Color(0xFFEDEFFB)
-val SurfaceTest = Color(0xFFFFFFFF)
-val SurfaceVariantTest = Color(0xFFDDE1FA)
-val OutlineTest = Color(0xFFAEB4F0)
-val TextPrimaryTest = Color(0xFF201F3D)
-val TextSecondaryTest = Color(0xFF5B5B7A)
-val TestBlue = Color(0xFF3D5AFE)
-val TestPurple = Color(0xFF8B2FE0)
-val TestGreen = Color(0xFF00C853)
-val TestBorderGold = Color(0xFFFFC700)
+// Cyberpunk Neon theme (AppTheme.CYBERPUNK_NEON) — a midnight synthwave HUD look: dark glass
+// panels, fine cyan wireframe borders, dual-tone magenta/cyan glow, pink-to-cyan gradients on
+// primary CTAs. Values taken directly from an explicit design spec (Tailwind tokens).
+val CyberBackground = Color(0xFF020617) // slate-950
+val CyberSurfaceSolid = Color(0xFF0F172A) // slate-900, opaque — inputs, neutral buttons
+val CyberCardSurface = Color(0xE60F172A) // slate-900 @ ~90% — translucent glass card/modal panels
+val CyberPillSurface = Color(0xCC0F172A) // slate-900 @ 80% — inactive tab/pill fill
+val CyberSlate700 = Color(0xFF334155) // borders on neutral/back buttons
+val CyberSlate800 = Color(0xFF1E293B) // inactive tab border
+val CyberSlate300 = Color(0xFFCBD5E1) // neutral/back button text
+val CyberSlate400 = Color(0xFF94A3B8) // muted secondary text, inactive tab text
 
-val TestAccentGradient = Brush.horizontalGradient(listOf(TestBlue, TestPurple))
+val CyberPink300 = Color(0xFFF9A8D4) // muted pink text (category badge, stats button)
+val CyberPink400 = Color(0xFFF472B6) // "Charades" logo highlight, select-deck action, accents
+val CyberPink500 = Color(0xFFEC4899) // gradient start, glow tint
+val CyberRose600 = Color(0xFFE11D48) // gradient end (CTA buttons, settings button)
+val CyberPurple500 = Color(0xFFA855F7) // tri-color gradient mid-stop
+
+val CyberCyan200 = Color(0xFFCFFAFE) // bright display text ("Ultimate", headline text)
+val CyberCyan300 = Color(0xFF67E8F9) // secondary highlights/icons, shuffle button text
+val CyberCyan400 = Color(0xFF22D3EE) // countdown/active-word glow color
+val CyberCyan500 = Color(0xFF06B6D4) // active pill fill, framing border base color
+
+val CyberRose400 = Color(0xFFFB7185) // pass/incorrect feedback text (matches IncorrectRed)
+val CyberRose950 = Color(0xFF4C0519) // pass feedback container
+
+val CyberAccentGradient = Brush.horizontalGradient(listOf(CyberPink500, CyberPurple500, CyberCyan500))
+val CyberButtonGradient = Brush.horizontalGradient(listOf(CyberPink500, CyberRose600))
 
 // Matrix Terminal theme — a black CRT-terminal look with neon phosphor green, per an explicit
 // design spec (Tailwind green-400/500/600/950 tokens, monospace type, glowing borders). Values
@@ -90,6 +97,7 @@ private val MusicSwatch = Color(0xFFEC4899)
 private val ActionsSwatch = Color(0xFF3B82F6)
 private val FamousPeopleSwatch = Color(0xFFF59E0B)
 private val RandomObjectsSwatch = Color(0xFF06B6D4)
+private val FoodSwatch = Color(0xFFDC2626)
 
 val Category.swatchColor: Color
     get() = when (this) {
@@ -99,6 +107,7 @@ val Category.swatchColor: Color
         Category.ACTIONS -> ActionsSwatch
         Category.FAMOUS_PEOPLE -> FamousPeopleSwatch
         Category.RANDOM_OBJECTS -> RandomObjectsSwatch
+        Category.FOOD -> FoodSwatch
     }
 
 // Preview swatches for the Settings screen's theme picker card — each theme's dominant
@@ -108,15 +117,13 @@ val AppTheme.previewBackground: Color
         AppTheme.DEFAULT -> SurfaceDark
         AppTheme.MATRIX_TERMINAL -> MatrixBackground
         AppTheme.POP_ART -> BackgroundPopArt
-        AppTheme.TEST -> BackgroundTest
-        AppTheme.STUDIO_MINIMALIST -> BackgroundLight
+        AppTheme.CYBERPUNK_NEON -> CyberBackground
     }
 
 val AppTheme.previewAccent: Color
     get() = when (this) {
         AppTheme.DEFAULT -> OrangeAccent
         AppTheme.MATRIX_TERMINAL -> MatrixPrimaryGreen
-        AppTheme.POP_ART -> PopArtRed
-        AppTheme.TEST -> TestBlue
-        AppTheme.STUDIO_MINIMALIST -> OrangeAccent
+        AppTheme.POP_ART -> PopArtPink600
+        AppTheme.CYBERPUNK_NEON -> CyberPink500
     }

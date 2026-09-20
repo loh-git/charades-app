@@ -123,7 +123,15 @@ class GameViewModel(
         if (timedOut) {
             _events.tryEmit(GameEvent.TIME_UP)
         }
-        val finished = _uiState.value
+        var finished = _uiState.value
+        // The word on screen when time runs out was never explicitly marked correct or passed —
+        // count it as incorrect rather than silently dropping it from the results/score.
+        if (timedOut && finished.currentWord.isNotEmpty()) {
+            finished = finished.copy(
+                results = finished.results + WordResult(finished.currentWord, correct = false),
+                currentWord = "",
+            )
+        }
         onRoundFinished(deck.title, finished.score, finished.results)
         _uiState.value = finished.copy(phase = RoundPhase.FINISHED, timeRemaining = 0)
     }

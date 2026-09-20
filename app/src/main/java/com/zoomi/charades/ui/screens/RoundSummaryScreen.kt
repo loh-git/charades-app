@@ -1,5 +1,6 @@
 package com.zoomi.charades.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,7 +37,12 @@ import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.ScreenHeaderIcon
 import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.CorrectGreen
+import com.zoomi.charades.ui.theme.LocalExtendedColors
 import com.zoomi.charades.ui.theme.PassRose
+import com.zoomi.charades.ui.theme.hardShadow
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 
 @Composable
 fun RoundSummaryScreen(
@@ -131,10 +137,17 @@ fun RoundSummaryScreen(
                 icon = Icons.Filled.Home,
                 modifier = Modifier.weight(1f).height(48.dp),
             )
+            val extended = LocalExtendedColors.current
+            val playAgainShape = RoundedCornerShape(12.dp)
             Button(
                 onClick = hapticClick(onPlayAgain),
-                modifier = Modifier.weight(1f).height(48.dp),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1f).height(48.dp)
+                    .hardShadow(extended, playAgainShape, large = true)
+                    .themedGlow(extended, playAgainShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                    .primaryButtonGradientBackground(extended, playAgainShape),
+                shape = playAgainShape,
+                colors = primaryButtonColors(extended),
+                border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
             ) {
                 Text("Play Again")
                 Spacer(modifier = Modifier.width(8.dp))

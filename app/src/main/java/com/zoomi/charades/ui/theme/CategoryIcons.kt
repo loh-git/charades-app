@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Theaters
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.zoomi.charades.data.Category
@@ -21,4 +22,5 @@ val Category.iconVector: ImageVector
         Category.ACTIONS -> Icons.AutoMirrored.Filled.DirectionsRun
         Category.FAMOUS_PEOPLE -> Icons.Filled.Person
         Category.RANDOM_OBJECTS -> Icons.Filled.Inventory2
+        Category.FOOD -> Icons.Filled.Restaurant
     }

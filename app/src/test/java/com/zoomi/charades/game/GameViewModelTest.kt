@@ -99,6 +99,21 @@ class GameViewModelTest {
     }
 
     @Test
+    fun `word still on screen when time runs out is recorded as incorrect`() {
+        val viewModel = newViewModel()
+        dispatcher.scheduler.advanceTimeBy(3_100)
+        dispatcher.scheduler.runCurrent()
+
+        val lastWord = viewModel.uiState.value.currentWord
+        dispatcher.scheduler.advanceTimeBy((TEST_ROUND_DURATION + 1) * 1000L)
+        dispatcher.scheduler.runCurrent()
+
+        assertEquals(RoundPhase.FINISHED, viewModel.uiState.value.phase)
+        assertEquals(listOf(WordResult(lastWord, correct = false)), viewModel.uiState.value.results)
+        assertEquals(0, viewModel.uiState.value.score)
+    }
+
+    @Test
     fun `round finishes when the deck is exhausted`() {
         val viewModel = newViewModel()
         dispatcher.scheduler.advanceTimeBy(3_100)

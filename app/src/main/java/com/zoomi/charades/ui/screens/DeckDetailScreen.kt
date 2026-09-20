@@ -1,5 +1,6 @@
 package com.zoomi.charades.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -48,8 +49,12 @@ import com.zoomi.charades.ui.components.NeutralButton
 import com.zoomi.charades.ui.components.OptionPill
 import com.zoomi.charades.ui.components.hapticClick
 import com.zoomi.charades.ui.theme.LocalExtendedColors
+import com.zoomi.charades.ui.theme.hardShadow
+import com.zoomi.charades.ui.theme.primaryButtonColors
+import com.zoomi.charades.ui.theme.primaryButtonGradientBackground
+import com.zoomi.charades.ui.theme.themedGlow
 
-private val TIMER_OPTIONS = listOf(30, 60, 90)
+private val TIMER_OPTIONS = listOf(30, 60, 90, 120)
 
 @Composable
 fun DeckDetailScreen(
@@ -63,6 +68,8 @@ fun DeckDetailScreen(
     }
     var isPartyMode by remember(deck.id) { mutableStateOf(false) }
 
+    val extended = LocalExtendedColors.current
+    val modalShape = RoundedCornerShape(24.dp)
     ModalScaffold(onDismissRequest = onBack) {
     Column(
         modifier = Modifier
@@ -70,8 +77,10 @@ fun DeckDetailScreen(
             .fillMaxWidth()
             .height(responsiveModalHeight(760.dp))
             .padding(horizontal = 16.dp)
-            .background(LocalExtendedColors.current.modalSurface, RoundedCornerShape(24.dp))
-            .border(1.dp, LocalExtendedColors.current.modalBorder, RoundedCornerShape(24.dp)),
+            .hardShadow(extended, modalShape, large = true)
+            .themedGlow(extended, modalShape, color = extended.cardGlowColor, elevation = extended.cardGlowElevation)
+            .background(extended.modalSurface, modalShape)
+            .border(extended.modalBorderWidth, extended.modalBorder, modalShape),
     ) {
     Column(
         modifier = Modifier
@@ -90,7 +99,7 @@ fun DeckDetailScreen(
         Text(
             text = deck.shortDescription,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = extended.deckInfoTextColor ?: MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Left,
             modifier = Modifier.padding(top = 8.dp),
         )
@@ -99,7 +108,7 @@ fun DeckDetailScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 40.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                .background(extended.deckInfoBackground ?: MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                 .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                 .padding(16.dp),
         ) {
@@ -107,7 +116,7 @@ fun DeckDetailScreen(
                 Icon(
                     imageVector = Icons.Filled.Info,
                     contentDescription = null,
-                    tint = LocalExtendedColors.current.iconAccentGold,
+                    tint = LocalExtendedColors.current.deckBadgeTint,
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
@@ -120,6 +129,7 @@ fun DeckDetailScreen(
             Text(
                 text = deck.howToPlay,
                 style = MaterialTheme.typography.bodyMedium,
+                color = extended.deckInfoTextColor ?: LocalContentColor.current,
                 modifier = Modifier.padding(top = 8.dp),
             )
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
@@ -158,6 +168,7 @@ fun DeckDetailScreen(
                     selected = seconds == selectedTimer,
                     onClick = { selectedTimer = seconds },
                     modifier = Modifier.weight(1f),
+                    selectedGradient = extended.timerOptionGradient,
                 )
             }
         }
@@ -179,12 +190,16 @@ fun DeckDetailScreen(
                 selected = !isPartyMode,
                 onClick = { isPartyMode = false },
                 modifier = Modifier.weight(1f),
+                selectedGlowColor = extended.modeOptionGlowColor,
+                selectedGlowElevation = extended.modeOptionGlowElevation,
             )
             OptionPill(
                 label = "Party",
                 selected = isPartyMode,
                 onClick = { isPartyMode = true },
                 modifier = Modifier.weight(1f),
+                selectedGlowColor = extended.modeOptionGlowColor,
+                selectedGlowElevation = extended.modeOptionGlowElevation,
             )
         }
 
@@ -198,12 +213,18 @@ fun DeckDetailScreen(
                 onClick = onBack,
                 modifier = Modifier.weight(1f).height(48.dp),
             )
+            val startGameShape = RoundedCornerShape(12.dp)
             Button(
                 onClick = hapticClick { onStart(selectedTimer, isPartyMode) },
-                modifier = Modifier.weight(2f).height(48.dp),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(2f).height(48.dp)
+                    .hardShadow(extended, startGameShape, large = true)
+                    .themedGlow(extended, startGameShape, color = extended.primaryButtonGlowColor, elevation = extended.primaryButtonGlowElevation)
+                    .primaryButtonGradientBackground(extended, startGameShape),
+                shape = startGameShape,
+                colors = primaryButtonColors(extended),
+                border = if (extended.primaryButtonBorderWidth > 0.dp) BorderStroke(extended.primaryButtonBorderWidth, extended.primaryButtonBorderColor) else null,
             ) {
-                Text("Start Game")
+                Text("Start Game", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
             }
