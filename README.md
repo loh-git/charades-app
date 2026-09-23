@@ -3,6 +3,15 @@
 A native Android party game: phone-on-forehead charades with tilt controls, built in
 Kotlin and Jetpack Compose.
 
+
+## Gallery
+
+![Cyberpunk Neon theme](https://github.com/loh-git/charades-app/raw/master/assets/cyberpunk-neon.jpg)
+![Sunset Arcade theme](https://github.com/loh-git/charades-app/raw/master/assets/sunset-arcade.jpg)
+![Terminal theme](https://github.com/loh-git/charades-app/raw/master/assets/terminal.jpg)
+![Pop-Art theme](https://github.com/loh-git/charades-app/raw/master/assets/pop-art.jpg)
+
+
 ## What it is
 
 Hold the phone on your forehead, your team acts out the word on screen, you tilt down to pass
