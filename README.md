@@ -6,10 +6,18 @@ Kotlin and Jetpack Compose.
 
 ## Gallery
 
+**Cyberpunk Neon** — midnight synthwave with dual-tone magenta and cyan glow.
 ![Cyberpunk Neon theme](https://github.com/loh-git/charades-app/raw/master/assets/cyberpunk-neon.jpg)
+
+**Sunset Arcade** — warm dark arcade aesthetic with golden amber highlights.
 ![Sunset Arcade theme](https://github.com/loh-git/charades-app/raw/master/assets/sunset-arcade.jpg)
+
+**Matrix Terminal** — black CRT terminal styling with glowing phosphor green.
 ![Terminal theme](https://github.com/loh-git/charades-app/raw/master/assets/terminal.jpg)
+
+**Pop Art** — bold primary colours with comic-book energy.
 ![Pop-Art theme](https://github.com/loh-git/charades-app/raw/master/assets/pop-art.jpg)
+
 
 
 ## What it is
